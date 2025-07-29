@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      forgejo-js:
+        specifier: ^11.0.0
+        version: 11.0.0
       neverthrow:
         specifier: ^8.2.0
         version: 8.2.0
@@ -460,6 +463,9 @@ packages:
   foreground-child@3.3.1:
     resolution: {integrity: sha512-gIXjKqtFuWEgzFRJA9WCQeSJLZDjgJUOMCMzxtvFq/37KojM1BFGufqsCy0r4qSQmYLsZYMeyRqzIWOMup03sw==}
     engines: {node: '>=14'}
+
+  forgejo-js@11.0.0:
+    resolution: {integrity: sha512-S1y/Cx/HJEpX39pqqiQ8XK+D9i9tp/F/wqsayYnQfUFKhBKRUMbkym6BC6TYK6pZxQlFHF9NRquFaXQaS/XYOw==}
 
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
@@ -1004,6 +1010,8 @@ snapshots:
     dependencies:
       cross-spawn: 7.0.6
       signal-exit: 4.1.0
+
+  forgejo-js@11.0.0: {}
 
   fsevents@2.3.3:
     optional: true

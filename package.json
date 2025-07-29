@@ -34,6 +34,7 @@
 		"typescript": "^5.8.3"
 	},
 	"dependencies": {
+		"forgejo-js": "^11.0.0",
 		"neverthrow": "^8.2.0"
 	}
 }
