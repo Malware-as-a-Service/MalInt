@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { ResultAsync } from "neverthrow";
+import { Result } from "neverthrow";
 
 export type Repository = {
   baseAddress: URL;
@@ -11,12 +11,12 @@ export type Repository = {
 };
 
 export interface Forge {
-  getVariable(name: string): ResultAsync<string, Error>;
-  getSecret(name: string): ResultAsync<string, Error>;
-  getContent(path: string): ResultAsync<string, Error>;
+  getVariable(name: string): Promise<Result<string, Error>>;
+  getSecret(name: string): Promise<Result<string, Error>>;
+  getContent(path: string): Promise<Result<string, Error>>;
   writeContent(
     path: string,
     message: string,
     content: string,
-  ): ResultAsync<string, Error>;
+  ): Promise<Result<string, Error>>;
 }
