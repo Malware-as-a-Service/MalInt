@@ -11,7 +11,6 @@ export type Repository = {
 };
 
 export interface Forge {
-  new(repository: Repository, token?: string): Forge;
   getVariable(name: string): ResultAsync<string, Error>;
   getSecret(name: string): ResultAsync<string, Error>;
   getContent(path: string): ResultAsync<string, Error>;
