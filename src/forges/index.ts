@@ -4,6 +4,7 @@
 
 import { Result } from "neverthrow";
 import { FileNotFound, NotAFile, VariableNotFound } from "./errors";
+import { Forgejo } from "./forgejo";
 
 export type Repository = {
   baseAddress: string;
@@ -15,6 +16,13 @@ export type Repository = {
 
 export enum ForgeKind {
   Forgejo,
+}
+
+export function getForge(repository: Repository): Forge {
+  switch (repository.kind) {
+    case ForgeKind.Forgejo:
+      return new Forgejo(repository);
+  }
 }
 
 export interface Forge {
