@@ -12,9 +12,9 @@ export class Forgejo implements Forge {
   client: Api<unknown>;
   repository: Repository;
 
-  constructor(repository: Repository, token?: string) {
+  constructor(repository: Repository) {
     this.client = forgejoApi(repository.baseAddress, {
-      token,
+      token: repository.token,
     });
     this.repository = repository;
   }

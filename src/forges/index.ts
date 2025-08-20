@@ -9,6 +9,8 @@ export type Repository = {
   baseAddress: string;
   ownerUsername: string;
   name: string;
+  kind: ForgeKind;
+  token?: string;
 };
 
 export enum ForgeKind {
