@@ -11,6 +11,10 @@ export type Repository = {
   name: string;
 };
 
+export enum ForgeKind {
+  Forgejo,
+}
+
 export interface Forge {
   getVariable(name: string): Promise<Result<string, VariableNotFound | Error>>;
   getContent(
