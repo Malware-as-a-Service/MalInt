@@ -5,21 +5,14 @@
 import { Result } from "neverthrow";
 import { FileNotFound, NotAFile, VariableNotFound } from "./errors";
 import { Forgejo } from "./forgejo";
-
-export type Repository = {
-  baseAddress: string;
-  ownerUsername: string;
-  name: string;
-  kind: ForgeKind;
-  token?: string;
-};
+import { Repository } from "../repositories";
 
 export enum ForgeKind {
   Forgejo,
 }
 
-export function getForge(repository: Repository): Forge {
-  switch (repository.kind) {
+export function getForge(repository: Repository, kind: ForgeKind): Forge {
+  switch (kind) {
     case ForgeKind.Forgejo:
       return new Forgejo(repository);
   }

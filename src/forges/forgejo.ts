@@ -3,10 +3,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { err, ok } from "neverthrow";
-import { Forge, Repository } from ".";
+import { Forge } from ".";
 import { Api, forgejoApi } from "forgejo-js";
 import { FileNotFound, NotAFile, VariableNotFound } from "./errors";
 import { Result } from "neverthrow";
+import { Repository } from "../repositories";
 
 export class Forgejo implements Forge {
   client: Api<unknown>;
