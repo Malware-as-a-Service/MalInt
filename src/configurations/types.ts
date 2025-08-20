@@ -2,39 +2,66 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-export type Repository = {
-  forge: Forge;
-  configurations: Configurations;
-  server: Server;
-  malware: Malware;
-};
+import { z } from "zod";
 
-export type Forge = {
-  buildingBranch: string;
-  buildingBranchVariableName: string;
-};
+export const Forge = z.object({
+  buildingBranch: z.string(),
+  buildingBranchVariableName: z.string().uppercase(),
+});
 
-export type Configurations = {
-  server: ServerConfigurations;
-  client: ClientConfigurations;
-};
+export const ServerConfigurations = z.object({
+  serverConfigurationPath: z.string().optional(),
+  malwareConfigurationPath: z.string(),
+});
 
-export type ServerConfigurations = {
-  serverConfigurationPath?: string;
-  malwareConfigurationPath: string;
-};
+export const ClientConfigurations = z
+  .object({
+    serverConfigurationPath: z.string().optional(),
+    serverUiPath: z.string().optional(),
+    malwareConfigurationPath: z.string().optional(),
+    malwareUiPath: z.string().optional(),
+  })
+  .refine(
+    (configuration) =>
+      (configuration.serverConfigurationPath === undefined &&
+        configuration.serverUiPath === undefined) ||
+      (configuration.serverConfigurationPath !== undefined &&
+        configuration.serverUiPath !== undefined),
+    {
+      message:
+        'The "serverConfigurationPath" and "serverUiPath" fields must be present, or both undefined.',
+      path: ["serverConfigurationPath", "serverUiPath"],
+    },
+  )
+  .refine(
+    (configuration) =>
+      (configuration.malwareConfigurationPath === undefined &&
+        configuration.malwareUiPath === undefined) ||
+      (configuration.malwareConfigurationPath !== undefined &&
+        configuration.malwareUiPath !== undefined),
+    {
+      message:
+        'Fields "The "malwareConfigurationPath" and "malwareUiPath" fields must be present, or both undefined.',
+      path: ["mawlareConfigurationPath", "malwareUiPath"],
+    },
+  );
 
-export type ClientConfigurations = {
-  serverConfigurationPath?: string;
-  serverUiPath?: string;
-  malwareConfigurationPath: string;
-  malwareUiPath: string;
-};
+export const Configurations = z.object({
+  server: ServerConfigurations,
+  client: ClientConfigurations,
+});
 
-export type Server = {
-  containerfilePath: string;
-};
+export const Server = z.object({
+  containerfilePath: z.string(),
+});
 
-export type Malware = {
-  finalConfigurationPath: string;
-};
+export const Malware = z.object({
+  finalConfigurationPath: z.string(),
+});
+
+export const Repository = z.object({
+  forge: Forge,
+  configurations: Configurations,
+  server: Server,
+  malware: Malware,
+});
