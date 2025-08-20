@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 export class FailToParse extends Error {
-  constructor(error: unknown) {
-    super(`${error}`);
+	constructor(error: unknown) {
+		super(`${error}`);
 
-    this.name = "FailToParse";
-  }
+		this.name = "FailToParse";
+	}
 }

@@ -9,22 +9,22 @@ import { Result, safeTry, err, ok } from "neverthrow";
 import { z, ZodError, safeParse } from "zod";
 
 export class Json implements Format {
-  deserializeRepository(
-    content: string,
-  ): Result<z.infer<typeof Repository>, FailToParse | ZodError> {
-    return safeTry(function* () {
-      const parsedContent = yield* Result.fromThrowable(
-        JSON.parse,
-        (error) => new FailToParse(error),
-      )(content);
+	deserializeRepository(
+		content: string,
+	): Result<z.infer<typeof Repository>, FailToParse | ZodError> {
+		return safeTry(function* () {
+			const parsedContent = yield* Result.fromThrowable(
+				JSON.parse,
+				(error) => new FailToParse(error),
+			)(content);
 
-      const result = safeParse(Repository, parsedContent);
+			const result = safeParse(Repository, parsedContent);
 
-      if (!result.success) {
-        return err(result.error);
-      }
+			if (!result.success) {
+				return err(result.error);
+			}
 
-      return ok(result.data);
-    });
-  }
+			return ok(result.data);
+		});
+	}
 }
