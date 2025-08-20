@@ -15,7 +15,7 @@ export class Json implements Format {
     return safeTry(function* () {
       const parsedContent = yield* Result.fromThrowable(
         JSON.parse,
-        () => new FailToParse(),
+        (error) => new FailToParse(error),
       )(content);
 
       const result = safeParse(Repository, parsedContent);

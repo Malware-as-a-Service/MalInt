@@ -16,7 +16,7 @@ export class Toml implements Format {
     return safeTry(function* () {
       const parsedContent = yield* Result.fromThrowable(
         parse,
-        () => new FailToParse(),
+        (error) => new FailToParse(error),
       )(content);
 
       const result = safeParse(Repository, parsedContent);
