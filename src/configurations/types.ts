@@ -4,9 +4,19 @@
 
 import { z } from "zod";
 
+const variableNameRegex = /^(?!FORGEJO_|GITHUB_)[A-Za-z0-9_]+$/;
+const variableNameErrorMessage =
+	'Variable name must not start with "FORGEJO_" or "GITHUB_" and can only contain alphanumeric characters and underscores.';
+
 export const Forge = z.object({
 	buildingBranch: z.string(),
-	buildingBranchVariableName: z.string().uppercase(),
+	buildingBranchVariableName: z
+		.string()
+		.uppercase()
+		.regex(variableNameRegex, variableNameErrorMessage),
+	finalConfigurationPathVariableName: z
+		.string()
+		.regex(variableNameRegex, variableNameErrorMessage),
 });
 
 export const ServerConfigurations = z.object({
