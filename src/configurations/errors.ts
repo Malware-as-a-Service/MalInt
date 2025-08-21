@@ -9,3 +9,13 @@ export class FailToParse extends Error {
 		this.name = "FailToParse";
 	}
 }
+
+export class InvalidExtension extends Error {
+	constructor(extension: string, validExentensions: Set<string>) {
+		super(
+			`Invalid file extension "${extension}". Valid extensions are: ${[...validExentensions].join(", ")}`,
+		);
+
+		this.name = "InvalidExtension";
+	}
+}
