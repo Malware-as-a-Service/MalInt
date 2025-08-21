@@ -2,6 +2,18 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+import { ForgeKind } from ".";
+
+export class InvalidForge extends Error {
+	constructor(kind: ForgeKind) {
+		super(
+			`Invalid forge "${kind}". Valid forges are: ${Object.keys(ForgeKind).join(", ")}`,
+		);
+
+		this.name = "InvalidForge";
+	}
+}
+
 export class VariableNotFound extends Error {
 	constructor(name: string) {
 		super(`Variable "${name}" not found.`);

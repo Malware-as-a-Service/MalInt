@@ -2,19 +2,29 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { Result } from "neverthrow";
-import { FileNotFound, NotAFile, VariableNotFound } from "./errors";
+import { err, ok, Result } from "neverthrow";
+import {
+  FileNotFound,
+  InvalidForge,
+  NotAFile,
+  VariableNotFound,
+} from "./errors";
 import { Forgejo } from "./forgejo";
 import { Repository } from "../repositories";
 
 export enum ForgeKind {
-  Forgejo,
+  Forgejo = "forgejo",
 }
 
-export function getForge(repository: Repository, kind: ForgeKind): Forge {
+export function getForge(
+  repository: Repository,
+  kind: ForgeKind,
+): Result<Forge, InvalidForge> {
   switch (kind) {
     case ForgeKind.Forgejo:
-      return new Forgejo(repository);
+      return ok(new Forgejo(repository));
+    default:
+      return err(new InvalidForge(kind));
   }
 }
 
