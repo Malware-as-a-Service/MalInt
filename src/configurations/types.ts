@@ -9,12 +9,11 @@ const variableNameErrorMessage =
 	'Variable name must not start with "FORGEJO_" or "GITHUB_" and can only contain alphanumeric characters and underscores.';
 
 export const Forge = z.object({
-	buildingBranch: z.string(),
 	buildingBranchVariableName: z
 		.string()
 		.uppercase()
 		.regex(variableNameRegex, variableNameErrorMessage),
-	finalConfigurationPathVariableName: z
+	configurationPathVariableName: z
 		.string()
 		.regex(variableNameRegex, variableNameErrorMessage),
 });
@@ -66,7 +65,7 @@ export const Server = z.object({
 });
 
 export const Malware = z.object({
-	finalConfigurationPath: z.string(),
+	configurationPath: z.string(),
 });
 
 export const Repository = z.object({
