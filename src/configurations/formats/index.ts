@@ -2,10 +2,28 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { Result } from "neverthrow";
+import { err, ok, Result } from "neverthrow";
 import { Repository } from "../types";
-import { FailToParse } from "../errors";
+import { FailToParse, InvalidExtension } from "../errors";
+import { Toml, extensions as tomlExtensions } from "./toml";
+import { Json, extensions as jsonExtensions } from "./json";
 import { z, ZodError } from "zod";
+
+export function getFormat(path: string): Result<Format, InvalidExtension> {
+	const extension = path.split(".").pop() ?? "";
+
+	if (jsonExtensions.has(extension)) {
+		return ok(new Json());
+	}
+
+	if (tomlExtensions.has(extension)) {
+		return ok(new Toml());
+	}
+
+	const validExtensions = new Set([...jsonExtensions, ...tomlExtensions]);
+
+	return err(new InvalidExtension(extension, validExtensions));
+}
 
 export interface Format {
 	deserializeRepository(
