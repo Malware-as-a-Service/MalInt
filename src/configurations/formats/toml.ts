@@ -9,6 +9,8 @@ import { Result, safeTry, ok, err } from "neverthrow";
 import { parse } from "smol-toml";
 import { z, ZodError, safeParse } from "zod";
 
+export const extensions = new Set(["toml"]);
+
 export class Toml implements Format {
 	deserializeRepository(
 		content: string,

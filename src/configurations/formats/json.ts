@@ -8,6 +8,8 @@ import { FailToParse } from "../errors";
 import { Result, safeTry, err, ok } from "neverthrow";
 import { z, ZodError, safeParse } from "zod";
 
+export const extensions = new Set(["json"]);
+
 export class Json implements Format {
 	deserializeRepository(
 		content: string,
