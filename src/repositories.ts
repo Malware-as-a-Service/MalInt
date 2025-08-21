@@ -6,6 +6,7 @@ export type Repository = {
   baseAddress: string;
   ownerUsername: string;
   name: string;
+  buildingBranch: string;
   configurationPath: string;
   token?: string;
 };
