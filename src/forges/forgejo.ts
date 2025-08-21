@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { err, ok } from "neverthrow";
+import { err, ok, safeTry } from "neverthrow";
 import { Forge } from ".";
-import { Api, forgejoApi } from "forgejo-js";
+import { Api, ContentsResponse, forgejoApi } from "forgejo-js";
 import { FileNotFound, NotAFile, VariableNotFound } from "./errors";
 import { Result } from "neverthrow";
 import { Repository } from "../repositories";
@@ -40,9 +40,9 @@ export class Forgejo implements Forge {
     return ok(response.data.data!);
   }
 
-  async getContent(
+  async getFile(
     path: string,
-  ): Promise<Result<string, FileNotFound | NotAFile | Error>> {
+  ): Promise<Result<ContentsResponse, FileNotFound | NotAFile | Error>> {
     const response = await this.client.repos.repoGetContents(
       this.repository.ownerUsername,
       this.repository.name,
@@ -61,7 +61,19 @@ export class Forgejo implements Forge {
       return err(new NotAFile(path));
     }
 
-    return ok(Buffer.from(response.data.content!, "base64").toString());
+    return ok(response.data);
+  }
+
+  async getContent(
+    path: string,
+  ): Promise<Result<string, FileNotFound | NotAFile | Error>> {
+    const self = this;
+
+    return safeTry(async function* () {
+      const file = yield* await self.getFile(path);
+
+      return ok(Buffer.from(file.content!, "base64").toString());
+    });
   }
 
   async writeContent(
@@ -70,46 +82,34 @@ export class Forgejo implements Forge {
     message: string,
     content: string,
   ): Promise<Result<void, FileNotFound | NotAFile | Error>> {
-    let contentResponse = await this.client.repos.repoGetContents(
-      this.repository.ownerUsername,
-      this.repository.name,
-      path,
-    );
+    const self = this;
 
-    if (!contentResponse.ok) {
-      if (contentResponse.status === 404) {
-        return err(new FileNotFound(path));
+    return safeTry(async function* () {
+      const file = yield* await self.getFile(path);
+
+      const sha = file.sha!;
+
+      const response = await self.client.repos.repoUpdateFile(
+        self.repository.ownerUsername,
+        self.repository.name,
+        path,
+        {
+          branch,
+          content: Buffer.from(content, "binary").toString("base64"),
+          message,
+          sha,
+        },
+      );
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          return err(new FileNotFound(path));
+        }
+
+        return err(new Error(response.error.message));
       }
 
-      return err(new Error(contentResponse.error.message));
-    }
-
-    if (contentResponse.data.type !== "file") {
-      return err(new NotAFile(path));
-    }
-
-    const sha = contentResponse.data.sha!;
-
-    const updateResponse = await this.client.repos.repoUpdateFile(
-      this.repository.ownerUsername,
-      this.repository.name,
-      path,
-      {
-        branch,
-        content: Buffer.from(content, "binary").toString("base64"),
-        message,
-        sha,
-      },
-    );
-
-    if (!updateResponse.ok) {
-      if (updateResponse.status === 404) {
-        return err(new FileNotFound(path));
-      }
-
-      return err(new Error(updateResponse.error.message));
-    }
-
-    return ok();
+      return ok();
+    });
   }
 }
