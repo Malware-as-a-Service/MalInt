@@ -20,9 +20,7 @@ export function getFormat(path: string): Result<Format, InvalidExtension> {
 		return ok(new Toml());
 	}
 
-	const validExtensions = new Set([...jsonExtensions, ...tomlExtensions]);
-
-	return err(new InvalidExtension(extension, validExtensions));
+	return err(new InvalidExtension(extension));
 }
 
 export interface Format {
