@@ -12,7 +12,6 @@ export const Repository = z.object({
 	forge: z.object({
 		buildingBranchVariableName: z
 			.string()
-			.uppercase()
 			.regex(variableNameRegex, variableNameErrorMessage),
 		configurationPathVariableName: z
 			.string()
