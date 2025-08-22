@@ -47,6 +47,7 @@ export class Forgejo implements Forge {
       this.repository.ownerUsername,
       this.repository.name,
       path,
+      { ref: this.repository.buildingBranch },
     );
 
     if (!response.ok) {
@@ -78,7 +79,6 @@ export class Forgejo implements Forge {
 
   async writeContent(
     path: string,
-    branch: string,
     message: string,
     content: string,
   ): Promise<Result<void, FileNotFound | NotAFile | Error>> {
@@ -94,7 +94,7 @@ export class Forgejo implements Forge {
         self.repository.name,
         path,
         {
-          branch,
+          branch: self.repository.buildingBranch,
           content: Buffer.from(content, "binary").toString("base64"),
           message,
           sha,
