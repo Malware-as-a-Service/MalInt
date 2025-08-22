@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { err, ok, Result } from "neverthrow";
-import { Repository } from "../types";
+import { Repository, ServerSideMalware, ServerSideServer } from "../types";
 import { FailToParse, InvalidExtension } from "../errors";
 import { Toml, extensions as tomlExtensions } from "./toml";
 import { Json, extensions as jsonExtensions } from "./json";
@@ -27,4 +27,10 @@ export interface Format {
 	deserializeRepository(
 		content: string,
 	): Result<z.infer<typeof Repository>, FailToParse | ZodError>;
+	deserializeServerSideServer(
+		content: string,
+	): Result<z.infer<typeof ServerSideServer>, FailToParse | ZodError>;
+	deserializeServerSideMalware(
+		content: string,
+	): Result<z.infer<typeof ServerSideMalware>, FailToParse | ZodError>;
 }
