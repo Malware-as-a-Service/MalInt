@@ -8,8 +8,9 @@ import { Repository } from "../repositories";
 import { getFormat } from "../configurations/formats";
 import { InvalidVariable } from "./errors";
 import { FailToParse, InvalidExtension } from "../configurations/errors";
-import { ZodError } from "zod";
+import z, { ZodError } from "zod";
 import { FileNotFound, InvalidForge, NotAFile } from "../forges/errors";
+import { Repository as RepositoryConfiguration } from "../configurations/types";
 
 export class Validator {
   forge: Forge;
@@ -46,44 +47,40 @@ export class Validator {
     const self = this;
 
     return safeTry(async function* () {
-      const format = yield* getFormat(self.repository.configurationPath);
-      const configuration = yield* format.deserializeRepository(
+      const repositoryFormat = yield* getFormat(
+        self.repository.configurationPath,
+      );
+      const repository = yield* repositoryFormat.deserializeRepository(
         yield* await self.forge.getContent(self.repository.configurationPath),
       );
 
-      yield* await self.validateVariables([
-        [
-          configuration.forge.buildingBranchVariableName,
-          self.repository.buildingBranch,
-        ],
-        [
-          configuration.forge.configurationPathVariableName,
-          configuration.malware.configurationPath,
-        ],
-      ]);
+      yield* await self.validateForge(repository);
 
       return ok();
     });
   }
 
-  async validateVariables(
-    variables: Array<[string, string]>,
+  async validateForge(
+    repository: z.infer<typeof RepositoryConfiguration>,
   ): Promise<Result<void, InvalidVariable[]>> {
+    const variables = [
+      [
+        repository.forge.buildingBranchVariableName,
+        this.repository.buildingBranch,
+      ],
+      [
+        repository.forge.configurationPathVariableName,
+        repository.malware.configurationPath,
+      ],
+    ];
+
     const result = Result.combineWithAllErrors(
       await Promise.all(
         variables.map(async (variable) => {
           const self = this;
           const [name, value] = variable;
 
-          return safeTry(async function* () {
-            let remoteValue = yield* await self.forge.getVariable(name);
-
-            if (remoteValue !== value) {
-              return err(new InvalidVariable(name));
-            }
-
-            return ok();
-          });
+          return await self.validateVariable(name, value);
         }),
       ),
     );
@@ -93,5 +90,22 @@ export class Validator {
     }
 
     return ok();
+  }
+
+  private async validateVariable(
+    name: string,
+    value: string,
+  ): Promise<Result<void, InvalidVariable>> {
+    const self = this;
+
+    return safeTry(async function* () {
+      let remoteValue = yield* await self.forge.getVariable(name);
+
+      if (remoteValue !== value) {
+        return err(new InvalidVariable(name));
+      }
+
+      return ok();
+    });
   }
 }
