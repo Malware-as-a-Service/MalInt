@@ -61,3 +61,26 @@ export const Repository = z.object({
 			),
 	}),
 });
+
+const functionRegex = /@(\w+)\(([^)]*)\)/;
+const functionErrorMessage =
+	"Function must match format: @functionName(firstParameter, secondParameter, ...)";
+
+export const ServerSideServer = z.object().catchall(
+	z.object({
+		function: z.string().regex(functionRegex, functionErrorMessage),
+		type: z.enum(["secret", "plaintext"]),
+		shared: z.boolean(),
+	}),
+);
+
+export const ServerSideMalware = z.object().catchall(
+	z.union([
+		z.object({
+			function: z.string().regex(functionRegex, functionErrorMessage),
+		}),
+		z.object({
+			from: z.string(),
+		}),
+	]),
+);
