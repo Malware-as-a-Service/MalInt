@@ -26,38 +26,38 @@ export const Repository = z.object({
 	}),
 	configurations: z.object({
 		serverSide: z.object({
-			serverConfigurationPath: z.string().optional(),
+			serverPath: z.string().optional(),
 			malwareConfigurationPath: z.string(),
 		}),
 		clientSide: z
 			.object({
-				serverConfigurationPath: z.string().optional(),
+				serverPath: z.string().optional(),
 				serverUiPath: z.string().optional(),
-				malwareConfigurationPath: z.string().optional(),
+				malwarePath: z.string().optional(),
 				malwareUiPath: z.string().optional(),
 			})
 			.refine(
 				(configuration) =>
-					(configuration.serverConfigurationPath === undefined &&
+					(configuration.serverPath === undefined &&
 						configuration.serverUiPath === undefined) ||
-					(configuration.serverConfigurationPath !== undefined &&
+					(configuration.serverPath !== undefined &&
 						configuration.serverUiPath !== undefined),
 				{
 					message:
-						'The "serverConfigurationPath" and "serverUiPath" fields must be present, or both undefined.',
-					path: ["serverConfigurationPath", "serverUiPath"],
+						'The "serverPath" and "serverUiPath" fields must be present, or both undefined.',
+					path: ["serverPath", "serverUiPath"],
 				},
 			)
 			.refine(
 				(configuration) =>
-					(configuration.malwareConfigurationPath === undefined &&
+					(configuration.malwarePath === undefined &&
 						configuration.malwareUiPath === undefined) ||
-					(configuration.malwareConfigurationPath !== undefined &&
+					(configuration.malwarePath !== undefined &&
 						configuration.malwareUiPath !== undefined),
 				{
 					message:
-						'Fields "The "malwareConfigurationPath" and "malwareUiPath" fields must be present, or both undefined.',
-					path: ["mawlareConfigurationPath", "malwareUiPath"],
+						'Fields "The "malwarePath" and "malwareUiPath" fields must be present, or both undefined.',
+					path: ["malwarePath", "malwareUiPath"],
 				},
 			),
 	}),
