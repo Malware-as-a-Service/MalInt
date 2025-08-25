@@ -22,5 +22,5 @@ export interface FailToParse {
 export interface Validation {
 	type: "validation";
 	message: string;
-	error: ZodError;
+	errors: ZodError;
 }

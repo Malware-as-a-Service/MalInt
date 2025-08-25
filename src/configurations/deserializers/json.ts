@@ -28,7 +28,7 @@ export class Json implements Deserializer {
 				return err({
 					type: "validation",
 					message: `Validation failed: "${result.error.message}"`,
-					error: result.error,
+					errors: result.error,
 				});
 			}
 
