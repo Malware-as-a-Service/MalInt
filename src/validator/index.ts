@@ -5,7 +5,7 @@
 import { err, ok, safeTry, Result } from "neverthrow";
 import { Forge, ForgeKind, getForge } from "../forges";
 import { Repository } from "../repositories";
-import { getFormat } from "../configurations/formats";
+import { getDeserializer } from "../configurations/deserializers";
 import { InvalidVariable } from "./errors";
 import { FailToParse, InvalidExtension } from "../configurations/errors";
 import z, { ZodError } from "zod";
@@ -47,10 +47,10 @@ export class Validator {
     const self = this;
 
     return safeTry(async function* () {
-      const repositoryFormat = yield* getFormat(
+      const repositoryDeserializer = yield* getDeserializer(
         self.repository.configurationPath,
       );
-      const repository = yield* repositoryFormat.deserializeRepository(
+      const repository = yield* repositoryDeserializer.deserializeRepository(
         yield* await self.forge.getContent(self.repository.configurationPath),
       );
 

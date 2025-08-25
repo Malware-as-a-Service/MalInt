@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { Format } from ".";
+import { Deserializer } from ".";
 import { Repository, ServerSideMalware, ServerSideServer } from "../types";
 import { FailToParse, Validation } from "../errors";
 import { Result, safeTry, ok, err } from "neverthrow";
@@ -11,7 +11,7 @@ import { z, ZodType } from "zod";
 
 export const extensions = new Set(["toml"]);
 
-export class Toml implements Format {
+export class Toml implements Deserializer {
 	deserialize<Type>(schema: ZodType<Type>, content: string): Result<Type, FailToParse | Validation> {
 		return safeTry(function* () {
 			const parsedContent = yield* Result.fromThrowable(

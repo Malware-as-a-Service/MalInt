@@ -11,7 +11,7 @@ import { z } from "zod";
 
 const validExtensions = Array.from(new Set([...jsonExtensions, ...tomlExtensions]));
 
-export function getFormat(path: string): Result<Format, InvalidExtension> {
+export function getDeserializer(path: string): Result<Deserializer, InvalidExtension> {
 	const extension = path.split(".").pop() ?? "";
 
 	if (jsonExtensions.has(extension)) {
@@ -30,7 +30,7 @@ export function getFormat(path: string): Result<Format, InvalidExtension> {
 	});
 }
 
-export interface Format {
+export interface Deserializer {
 	deserializeRepository(
 		content: string,
 	): Result<z.infer<typeof Repository>, FailToParse | Validation>;
