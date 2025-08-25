@@ -4,7 +4,7 @@
 
 import { Deserializer } from ".";
 import { Repository, ServerSideMalware, ServerSideServer } from "../types";
-import { FailToParse, Validation } from "../errors";
+import { Deserialize, FailToParse, Validation } from "../errors";
 import { Result, safeTry, ok, err } from "neverthrow";
 import { parse } from "smol-toml";
 import { z, ZodType } from "zod";
@@ -12,7 +12,7 @@ import { z, ZodType } from "zod";
 export const extensions = new Set(["toml"]);
 
 export class Toml implements Deserializer {
-	deserialize<Type>(schema: ZodType<Type>, content: string): Result<Type, FailToParse | Validation> {
+	deserialize<Type>(schema: ZodType<Type>, content: string): Result<Type, Deserialize> {
 		return safeTry(function* () {
 			const parsedContent = yield* Result.fromThrowable(
 				parse,
@@ -39,19 +39,19 @@ export class Toml implements Deserializer {
 
 	deserializeRepository(
 		content: string,
-	): Result<z.infer<typeof Repository>, FailToParse | Validation> {
+	): Result<z.infer<typeof Repository>, Deserialize> {
 		return this.deserialize(Repository, content);
 	}
 
 	deserializeServerSideServer(
 		content: string,
-	): Result<z.infer<typeof ServerSideServer>, FailToParse | Validation> {
+	): Result<z.infer<typeof ServerSideServer>, Deserialize> {
 		return this.deserialize(ServerSideServer, content);
 	};
 
 	deserializeServerSideMalware(
 		content: string,
-	): Result<z.infer<typeof ServerSideMalware>, FailToParse | Validation> {
+	): Result<z.infer<typeof ServerSideMalware>, Deserialize> {
 		return this.deserialize(ServerSideMalware, content);
 	}
 }

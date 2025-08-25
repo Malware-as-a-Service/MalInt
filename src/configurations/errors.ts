@@ -4,7 +4,7 @@
 
 import { ZodError } from "zod";
 
-export type Configuration = InvalidExtension | FailToParse | Validation;
+export type Deserialize = FailToParse | Validation;
 
 export interface InvalidExtension {
 	type: "invalidExtension";

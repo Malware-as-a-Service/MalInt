@@ -4,7 +4,7 @@
 
 import { err, ok, Result } from "neverthrow";
 import { Repository, ServerSideMalware, ServerSideServer } from "../types";
-import { FailToParse, InvalidExtension, Validation } from "../errors";
+import { Deserialize, FailToParse, InvalidExtension, Validation } from "../errors";
 import { Toml, extensions as tomlExtensions } from "./toml";
 import { Json, extensions as jsonExtensions } from "./json";
 import { z } from "zod";
@@ -33,11 +33,11 @@ export function getDeserializer(path: string): Result<Deserializer, InvalidExten
 export interface Deserializer {
 	deserializeRepository(
 		content: string,
-	): Result<z.infer<typeof Repository>, FailToParse | Validation>;
+	): Result<z.infer<typeof Repository>, Deserialize>;
 	deserializeServerSideServer(
 		content: string,
-	): Result<z.infer<typeof ServerSideServer>, FailToParse | Validation>;
+	): Result<z.infer<typeof ServerSideServer>, Deserialize>;
 	deserializeServerSideMalware(
 		content: string,
-	): Result<z.infer<typeof ServerSideMalware>, FailToParse | Validation>;
+	): Result<z.infer<typeof ServerSideMalware>, Deserialize>;
 }

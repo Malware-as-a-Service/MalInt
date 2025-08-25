@@ -4,14 +4,14 @@
 
 import { Deserializer } from ".";
 import { Repository, ServerSideMalware, ServerSideServer, } from "../types";
-import { FailToParse, Validation } from "../errors";
+import { Deserialize, FailToParse } from "../errors";
 import { Result, safeTry, err, ok } from "neverthrow";
 import { z, ZodType } from "zod";
 
 export const extensions = new Set(["json"]);
 
 export class Json implements Deserializer {
-	deserialize<Type>(schema: ZodType<Type>, content: string): Result<Type, FailToParse | Validation> {
+	deserialize<Type>(schema: ZodType<Type>, content: string): Result<Type, Deserialize> {
 		return safeTry(function* () {
 			const parsedContent = yield* Result.fromThrowable(
 				JSON.parse,
@@ -38,19 +38,19 @@ export class Json implements Deserializer {
 
 	deserializeRepository(
 		content: string,
-	): Result<z.infer<typeof Repository>, FailToParse | Validation> {
+	): Result<z.infer<typeof Repository>, Deserialize> {
 		return this.deserialize(Repository, content);
 	}
 
 	deserializeServerSideServer(
 		content: string,
-	): Result<z.infer<typeof ServerSideServer>, FailToParse | Validation> {
+	): Result<z.infer<typeof ServerSideServer>, Deserialize> {
 		return this.deserialize(ServerSideServer, content);
 	};
 
 	deserializeServerSideMalware(
 		content: string,
-	): Result<z.infer<typeof ServerSideMalware>, FailToParse | Validation> {
+	): Result<z.infer<typeof ServerSideMalware>, Deserialize> {
 		return this.deserialize(ServerSideMalware, content);
 	}
 }
