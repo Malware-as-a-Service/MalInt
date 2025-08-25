@@ -49,7 +49,7 @@ export class Forgejo implements Forge {
     return ok(response.data.data!);
   }
 
-  async getFile(
+  private async getFile(
     path: string,
   ): Promise<Result<ContentsResponse, GetFile>> {
     const response = await this.client.repos.repoGetContents(
