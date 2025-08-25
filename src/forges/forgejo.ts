@@ -90,13 +90,11 @@ export class Forgejo implements Forge {
   async getContent(
     path: string,
   ): Promise<Result<string, GetContent>> {
-    const getFile = this.getFile;
-
-    return safeTry(async function* () {
-      const file = yield* await getFile(path);
+    return safeTry(async function* (this: Forgejo) {
+      const file = yield* await this.getFile(path);
 
       return ok(Buffer.from(file.content!, "base64").toString());
-    });
+    }.bind(this));
   }
 
   async writeContent(
@@ -104,20 +102,16 @@ export class Forgejo implements Forge {
     message: string,
     content: string,
   ): Promise<Result<void, WriteContent>> {
-    const getFile = this.getFile;
-    const client = this.client;
-    const repository = this.repository;
-
-    return safeTry(async function* () {
-      const file = yield* await getFile(path);
+    return safeTry(async function* (this: Forgejo) {
+      const file = yield* await this.getFile(path);
       const sha = file.sha!;
 
-      const response = await client.repos.repoUpdateFile(
-        repository.ownerUsername,
-        repository.name,
+      const response = await this.client.repos.repoUpdateFile(
+        this.repository.ownerUsername,
+        this.repository.name,
         path,
         {
-          branch: repository.buildingBranch,
+          branch: this.repository.buildingBranch,
           content: Buffer.from(content).toString("base64"),
           message,
           sha,
@@ -154,6 +148,6 @@ export class Forgejo implements Forge {
       }
 
       return ok();
-    });
+    }.bind(this));
   }
 }
