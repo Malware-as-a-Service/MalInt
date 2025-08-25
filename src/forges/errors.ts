@@ -4,36 +4,39 @@
 
 import { ForgeKind } from ".";
 
-export class InvalidForge extends Error {
-	constructor(kind: ForgeKind) {
-		super(
-			`Invalid forge "${kind}". Valid forges are: ${Object.keys(ForgeKind).join(", ")}`,
-		);
+export type GetVariable = NotFound | Unexpected;
+export type GetFile = NotFound | Unexpected;
+export type GetContent = GetFile;
+export type WriteContent = GetFile | NotFound | Conflict | Validation | Unexpected;
 
-		this.name = "InvalidForge";
-	}
+export interface InvalidForgeKind {
+	type: "invalidForgeKind";
+	message: string;
+	kind: ForgeKind;
+	validKinds: ForgeKind[];
 }
 
-export class VariableNotFound extends Error {
-	constructor(name: string) {
-		super(`Variable "${name}" not found.`);
-
-		this.name = "VariableNotFound";
-	}
+export interface NotFound {
+	type: "notFound";
+	message: string;
+	resource: string;
 }
 
-export class FileNotFound extends Error {
-	constructor(path: string) {
-		super(`File "${path}" not found.`);
-
-		this.name = "FileNotFound";
-	}
+export interface Conflict {
+	type: "conflict";
+	message: string;
+	detail?: string;
 }
 
-export class NotAFile extends Error {
-	constructor(path: string) {
-		super(`File "${path}" is not a file.`);
+export interface Validation {
+	type: "validation";
+	message: string;
+	detail?: string;
+}
 
-		this.name = "NotAFile";
-	}
+export interface Unexpected {
+	type: "unexpected";
+	status: number;
+	message: string;
+	error: Error;
 }

@@ -5,7 +5,7 @@
 import { err, ok, safeTry } from "neverthrow";
 import { Forge } from ".";
 import { Api, ContentsResponse, forgejoApi } from "forgejo-js";
-import { FileNotFound, NotAFile, VariableNotFound } from "./errors";
+import { Conflict, GetContent, GetFile, GetVariable, NotFound, Unexpected, Validation, WriteContent } from "./errors";
 import { Result } from "neverthrow";
 import { Repository } from "../repositories";
 
@@ -22,7 +22,7 @@ export class Forgejo implements Forge {
 
   async getVariable(
     name: string,
-  ): Promise<Result<string, VariableNotFound | Error>> {
+  ): Promise<Result<string, GetVariable>> {
     const response = await this.client.repos.getRepoVariable(
       this.repository.ownerUsername,
       this.repository.name,
@@ -31,10 +31,19 @@ export class Forgejo implements Forge {
 
     if (!response.ok) {
       if (response.status === 404) {
-        return err(new VariableNotFound(name));
+        return err({
+          type: "notFound",
+          message: `Variable "${name}" not found.`,
+          resource: name,
+        });
       }
 
-      return err(new Error(response.error.message));
+      return err({
+        type: "unexpected",
+        status: response.status,
+        message: `Unexpected error while fetching variable "${name}".`,
+        error: response.error as Error,
+      });
     }
 
     return ok(response.data.data!);
@@ -42,7 +51,7 @@ export class Forgejo implements Forge {
 
   async getFile(
     path: string,
-  ): Promise<Result<ContentsResponse, FileNotFound | NotAFile | Error>> {
+  ): Promise<Result<ContentsResponse, GetFile>> {
     const response = await this.client.repos.repoGetContents(
       this.repository.ownerUsername,
       this.repository.name,
@@ -52,14 +61,27 @@ export class Forgejo implements Forge {
 
     if (!response.ok) {
       if (response.status === 404) {
-        return err(new FileNotFound(path));
+        return err({
+          type: "notFound",
+          message: `File "${path}" not found.`,
+          resource: path,
+        });
       }
 
-      return err(new Error(response.error.message));
+      return err({
+        type: "unexpected",
+        status: response.status,
+        message: `Unexpected error while fetching file "${path}".`,
+        error: response.error as Error,
+      });
     }
 
     if (response.data.type !== "file") {
-      return err(new NotAFile(path));
+      return err({
+        type: "notFound",
+        message: `File "${path}" not found.`,
+        resource: path,
+      });
     }
 
     return ok(response.data);
@@ -67,11 +89,11 @@ export class Forgejo implements Forge {
 
   async getContent(
     path: string,
-  ): Promise<Result<string, FileNotFound | NotAFile | Error>> {
-    const self = this;
+  ): Promise<Result<string, GetContent>> {
+    const getFile = this.getFile;
 
     return safeTry(async function* () {
-      const file = yield* await self.getFile(path);
+      const file = yield* await getFile(path);
 
       return ok(Buffer.from(file.content!, "base64").toString());
     });
@@ -81,32 +103,54 @@ export class Forgejo implements Forge {
     path: string,
     message: string,
     content: string,
-  ): Promise<Result<void, FileNotFound | NotAFile | Error>> {
-    const self = this;
+  ): Promise<Result<void, WriteContent>> {
+    const getFile = this.getFile;
+    const client = this.client;
+    const repository = this.repository;
 
     return safeTry(async function* () {
-      const file = yield* await self.getFile(path);
-
+      const file = yield* await getFile(path);
       const sha = file.sha!;
 
-      const response = await self.client.repos.repoUpdateFile(
-        self.repository.ownerUsername,
-        self.repository.name,
+      const response = await client.repos.repoUpdateFile(
+        repository.ownerUsername,
+        repository.name,
         path,
         {
-          branch: self.repository.buildingBranch,
-          content: Buffer.from(content, "binary").toString("base64"),
+          branch: repository.buildingBranch,
+          content: Buffer.from(content).toString("base64"),
           message,
           sha,
         },
       );
 
       if (!response.ok) {
-        if (response.status === 404) {
-          return err(new FileNotFound(path));
+        switch (response.status) {
+          case 404:
+            return err({
+              type: "notFound",
+              message: `File "${path}" not found.`,
+              resource: path,
+            } as NotFound);
+          case 409:
+            return err({
+              type: "conflict",
+              message: `Conflict while updating file "${path}".`,
+            } as Conflict);
+          case 422:
+            return err({
+              type: "validation",
+              message: `Validation error while updating file "${path}".`,
+              detail: response.error.message,
+            } as Validation);
+          default:
+            return err({
+              type: "unexpected",
+              status: response.status,
+              message: `Unexpected error while updating file "${path}".`,
+              error: response.error as Error,
+            } as Unexpected);
         }
-
-        return err(new Error(response.error.message));
       }
 
       return ok();

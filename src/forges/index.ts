@@ -4,10 +4,10 @@
 
 import { err, ok, Result } from "neverthrow";
 import {
-  FileNotFound,
-  InvalidForge,
-  NotAFile,
-  VariableNotFound,
+  GetContent,
+  GetVariable,
+  InvalidForgeKind,
+  WriteContent,
 } from "./errors";
 import { Forgejo } from "./forgejo";
 import { Repository } from "../repositories";
@@ -16,27 +16,33 @@ export enum ForgeKind {
   Forgejo = "forgejo",
 }
 
+const validKinds = Object.values(ForgeKind);
+
 export function getForge(
   repository: Repository,
   kind: ForgeKind,
-): Result<Forge, InvalidForge> {
+): Result<Forge, InvalidForgeKind> {
   switch (kind) {
     case ForgeKind.Forgejo:
       return ok(new Forgejo(repository));
     default:
-      return err(new InvalidForge(kind));
+      return err({
+        type: "invalidForgeKind",
+        message: `Invalid forge "${kind}". Valid forges are: ${validKinds.join(", ")}`,
+        kind,
+        validKinds,
+      });
   }
 }
 
 export interface Forge {
-  getVariable(name: string): Promise<Result<string, VariableNotFound | Error>>;
+  getVariable(name: string): Promise<Result<string, GetVariable>>;
   getContent(
     path: string,
-  ): Promise<Result<string, FileNotFound | NotAFile | Error>>;
+  ): Promise<Result<string, GetContent>>;
   writeContent(
     path: string,
-    branch: string,
     message: string,
     content: string,
-  ): Promise<Result<void, FileNotFound | NotAFile | Error>>;
+  ): Promise<Result<void, WriteContent>>;
 }
