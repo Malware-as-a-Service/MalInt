@@ -4,27 +4,35 @@
 
 import { Format } from ".";
 import { Repository, ServerSideMalware, ServerSideServer } from "../types";
-import { FailToParse } from "../errors";
+import { FailToParse, Validation } from "../errors";
 import { Result, safeTry, ok, err } from "neverthrow";
 import { parse } from "smol-toml";
-import { z, ZodError, safeParse } from "zod";
+import { z } from "zod";
 
 export const extensions = new Set(["toml"]);
 
 export class Toml implements Format {
 	deserializeRepository(
 		content: string,
-	): Result<z.infer<typeof Repository>, FailToParse | ZodError> {
+	): Result<z.infer<typeof Repository>, FailToParse | Validation> {
 		return safeTry(function* () {
 			const parsedContent = yield* Result.fromThrowable(
 				parse,
-				(error) => new FailToParse(error),
+				(error): FailToParse => ({
+					type: "failToParse",
+					message: `Failed to parse TOML: ${error instanceof Error ? error.message : String(error)}`,
+					error: error instanceof Error ? error : new Error(String(error)),
+				}),
 			)(content);
 
-			const result = safeParse(Repository, parsedContent);
+			const result = Repository.safeParse(parsedContent);
 
 			if (!result.success) {
-				return err(result.error);
+				return err({
+					type: "validation",
+					message: `Repository validation failed: "${result.error.message}"`,
+					error: result.error,
+				});
 			}
 
 			return ok(result.data);
@@ -33,17 +41,25 @@ export class Toml implements Format {
 
 	deserializeServerSideServer(
 		content: string,
-	): Result<z.infer<typeof ServerSideServer>, FailToParse | ZodError> {
+	): Result<z.infer<typeof ServerSideServer>, FailToParse | Validation> {
 		return safeTry(function* () {
 			const parsedContent = yield* Result.fromThrowable(
 				parse,
-				(error) => new FailToParse(error),
+				(error): FailToParse => ({
+					type: "failToParse",
+					message: `Failed to parse TOML: ${error instanceof Error ? error.message : String(error)}`,
+					error: error instanceof Error ? error : new Error(String(error)),
+				}),
 			)(content);
 
-			const result = safeParse(ServerSideServer, parsedContent);
+			const result = ServerSideServer.safeParse(parsedContent);
 
 			if (!result.success) {
-				return err(result.error);
+				return err({
+					type: "validation",
+					message: `Server side server validation failed: "${result.error.message}"`,
+					error: result.error,
+				});
 			}
 
 			return ok(result.data);
@@ -52,17 +68,25 @@ export class Toml implements Format {
 
 	deserializeServerSideMalware(
 		content: string,
-	): Result<z.infer<typeof ServerSideMalware>, FailToParse | ZodError> {
+	): Result<z.infer<typeof ServerSideMalware>, FailToParse | Validation> {
 		return safeTry(function* () {
 			const parsedContent = yield* Result.fromThrowable(
 				parse,
-				(error) => new FailToParse(error),
+				(error): FailToParse => ({
+					type: "failToParse",
+					message: `Failed to parse TOML: ${error instanceof Error ? error.message : String(error)}`,
+					error: error instanceof Error ? error : new Error(String(error)),
+				}),
 			)(content);
 
-			const result = safeParse(ServerSideMalware, parsedContent);
+			const result = ServerSideMalware.safeParse(parsedContent);
 
 			if (!result.success) {
-				return err(result.error);
+				return err({
+					type: "validation",
+					message: `Server side malware validation failed: "${result.error.message}"`,
+					error: result.error,
+				});
 			}
 
 			return ok(result.data);

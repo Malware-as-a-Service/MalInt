@@ -4,10 +4,12 @@
 
 import { err, ok, Result } from "neverthrow";
 import { Repository, ServerSideMalware, ServerSideServer } from "../types";
-import { FailToParse, InvalidExtension } from "../errors";
+import { FailToParse, InvalidExtension, Validation } from "../errors";
 import { Toml, extensions as tomlExtensions } from "./toml";
 import { Json, extensions as jsonExtensions } from "./json";
-import { z, ZodError } from "zod";
+import { z } from "zod";
+
+const validExtensions = Array.from(new Set([...jsonExtensions, ...tomlExtensions]));
 
 export function getFormat(path: string): Result<Format, InvalidExtension> {
 	const extension = path.split(".").pop() ?? "";
@@ -20,17 +22,22 @@ export function getFormat(path: string): Result<Format, InvalidExtension> {
 		return ok(new Toml());
 	}
 
-	return err(new InvalidExtension(extension));
+	return err({
+		type: "invalidExtension",
+		message: `Invalid file extension "${extension}". Valid extensions are: ${validExtensions.join(", ")}`,
+		extension,
+		validExtensions: validExtensions,
+	});
 }
 
 export interface Format {
 	deserializeRepository(
 		content: string,
-	): Result<z.infer<typeof Repository>, FailToParse | ZodError>;
+	): Result<z.infer<typeof Repository>, FailToParse | Validation>;
 	deserializeServerSideServer(
 		content: string,
-	): Result<z.infer<typeof ServerSideServer>, FailToParse | ZodError>;
+	): Result<z.infer<typeof ServerSideServer>, FailToParse | Validation>;
 	deserializeServerSideMalware(
 		content: string,
-	): Result<z.infer<typeof ServerSideMalware>, FailToParse | ZodError>;
+	): Result<z.infer<typeof ServerSideMalware>, FailToParse | Validation>;
 }

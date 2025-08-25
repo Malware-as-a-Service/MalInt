@@ -2,25 +2,25 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { extensions as tomlExtensions } from "./formats/toml";
-import { extensions as jsonExtensions } from "./formats/json";
+import { ZodError } from "zod";
 
-export class FailToParse extends Error {
-	constructor(error: unknown) {
-		super(`${error}`);
+export type Configuration = InvalidExtension | FailToParse | Validation;
 
-		this.name = "FailToParse";
-	}
+export interface InvalidExtension {
+	type: "invalidExtension";
+	message: string;
+	extension: string;
+	validExtensions: string[];
 }
 
-export class InvalidExtension extends Error {
-	constructor(extension: string) {
-		const validExentensions = [...jsonExtensions, ...tomlExtensions];
+export interface FailToParse {
+	type: "failToParse";
+	message: string;
+	error: Error;
+}
 
-		super(
-			`Invalid file extension "${extension}". Valid extensions are: ${validExentensions.join(", ")}`,
-		);
-
-		this.name = "InvalidExtension";
-	}
+export interface Validation {
+	type: "validation";
+	message: string;
+	error: ZodError;
 }
