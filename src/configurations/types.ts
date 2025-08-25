@@ -26,7 +26,7 @@ export const Repository = z.object({
 	configurations: z.object({
 		serverSide: z.object({
 			serverPath: z.string().optional(),
-			malwareConfigurationPath: z.string(),
+			malwarePath: z.string(),
 		}),
 		clientSide: z
 			.object({
