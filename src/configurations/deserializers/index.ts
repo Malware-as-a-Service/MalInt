@@ -4,15 +4,16 @@
 
 import { err, ok, Result } from "neverthrow";
 import { Repository, ServerSideMalware, ServerSideServer } from "../types";
-import { Deserialize, FailToParse, InvalidExtension, Validation } from "../errors";
+import { Deserialize, InvalidExtension } from "../errors";
 import { Toml, extensions as tomlExtensions } from "./toml";
 import { Json, extensions as jsonExtensions } from "./json";
 import { z } from "zod";
+import pathModule from "path";
 
 const validExtensions = Array.from(new Set([...jsonExtensions, ...tomlExtensions]));
 
 export function getDeserializer(path: string): Result<Deserializer, InvalidExtension> {
-	const extension = path.split(".").pop() ?? "";
+	const extension = pathModule.extname(path).slice(1);
 
 	if (jsonExtensions.has(extension)) {
 		return ok(new Json());
