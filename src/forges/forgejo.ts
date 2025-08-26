@@ -108,7 +108,7 @@ export class Forgejo implements Forge {
 		path: string,
 		message: string,
 		content: string,
-	): Promise<Result<void, WriteContent>> {
+	): Promise<Result<string, WriteContent>> {
 		return safeTry(
 			async function* (this: Forgejo) {
 				const file = yield* await this.getFile(path);
@@ -155,7 +155,7 @@ export class Forgejo implements Forge {
 					}
 				}
 
-				return ok();
+				return ok(response.data.commit?.sha ?? "");
 			}.bind(this),
 		);
 	}

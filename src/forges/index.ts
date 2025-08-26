@@ -42,5 +42,5 @@ export interface Forge {
 		path: string,
 		message: string,
 		content: string,
-	): Promise<Result<void, WriteContent>>;
+	): Promise<Result<string, WriteContent>>;
 }
