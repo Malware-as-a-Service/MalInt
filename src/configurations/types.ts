@@ -70,7 +70,6 @@ export const ServerSideServer = z.object().catchall(
 	z.object({
 		function: z.string().regex(functionRegex, functionErrorMessage),
 		type: z.enum(["secret", "plaintext"]),
-		shared: z.boolean(),
 	}),
 );
 
