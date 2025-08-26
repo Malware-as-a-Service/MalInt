@@ -2,15 +2,15 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { GetContent, GetVariable } from "../forges/errors";
+import type { GetContent, GetVariable } from "../forges/errors";
 
 export type ValidateForge = ValidateVariable[];
 export type ValidateVariable = GetVariable | InvalidVariable;
 export type ValidateMalware = GetContent;
 
 export interface InvalidVariable {
-  type: "invalidVariable";
-  message: string;
-  value: string;
-  expectedValue: string;
+	type: "invalidVariable";
+	message: string;
+	value: string;
+	expectedValue: string;
 }

@@ -2,17 +2,21 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { err, ok, Result } from "neverthrow";
-import { Repository, ServerSideMalware, ServerSideServer } from "../types";
-import { Deserialize, InvalidExtension } from "../errors";
+import { err, ok, type Result } from "neverthrow";
+import type { Repository, ServerSideMalware, ServerSideServer } from "../types";
+import type { Deserialize, InvalidExtension } from "../errors";
 import { Toml, extensions as tomlExtensions } from "./toml";
 import { Json, extensions as jsonExtensions } from "./json";
-import { z } from "zod";
-import pathModule from "path";
+import type { z } from "zod";
+import pathModule from "node:path";
 
-const validExtensions = Array.from(new Set([...jsonExtensions, ...tomlExtensions]));
+const validExtensions = Array.from(
+	new Set([...jsonExtensions, ...tomlExtensions]),
+);
 
-export function getDeserializer(path: string): Result<Deserializer, InvalidExtension> {
+export function getDeserializer(
+	path: string,
+): Result<Deserializer, InvalidExtension> {
 	const extension = pathModule.extname(path).slice(1);
 
 	if (jsonExtensions.has(extension)) {

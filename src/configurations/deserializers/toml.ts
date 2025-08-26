@@ -2,17 +2,20 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { Deserializer } from ".";
+import type { Deserializer } from ".";
 import { Repository, ServerSideMalware, ServerSideServer } from "../types";
-import { Deserialize, FailToParse, Validation } from "../errors";
+import type { Deserialize, FailToParse } from "../errors";
 import { Result, safeTry, ok, err } from "neverthrow";
 import { parse } from "smol-toml";
-import { z, ZodType } from "zod";
+import type { z, ZodType } from "zod";
 
 export const extensions = new Set(["toml"]);
 
 export class Toml implements Deserializer {
-	deserialize<Type>(schema: ZodType<Type>, content: string): Result<Type, Deserialize> {
+	deserialize<Type>(
+		schema: ZodType<Type>,
+		content: string,
+	): Result<Type, Deserialize> {
 		return safeTry(function* () {
 			const parsedContent = yield* Result.fromThrowable(
 				parse,
@@ -47,7 +50,7 @@ export class Toml implements Deserializer {
 		content: string,
 	): Result<z.infer<typeof ServerSideServer>, Deserialize> {
 		return this.deserialize(ServerSideServer, content);
-	};
+	}
 
 	deserializeServerSideMalware(
 		content: string,

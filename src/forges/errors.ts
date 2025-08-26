@@ -2,12 +2,17 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { ForgeKind } from ".";
+import type { ForgeKind } from ".";
 
 export type GetVariable = NotFound | Unexpected;
 export type GetFile = NotFound | Unexpected;
 export type GetContent = GetFile;
-export type WriteContent = GetFile | NotFound | Conflict | Validation | Unexpected;
+export type WriteContent =
+	| GetFile
+	| NotFound
+	| Conflict
+	| Validation
+	| Unexpected;
 
 export interface InvalidForgeKind {
 	type: "invalidForgeKind";

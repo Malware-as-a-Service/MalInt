@@ -3,121 +3,136 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { err, ok, safeTry, Result } from "neverthrow";
-import { Forge, ForgeKind, getForge } from "../forges";
-import { Repository } from "../repositories";
+import { type Forge, type ForgeKind, getForge } from "../forges";
+import type { Repository } from "../repositories";
 import { getDeserializer } from "../configurations/deserializers";
-import { InvalidVariable, ValidateForge, ValidateMalware, ValidateVariable } from "./errors";
-import { Repository as RepositoryConfiguration } from "../configurations/types";
-import { InvalidForgeKind } from "../forges/errors";
-import z from "zod";
+import type {
+	InvalidVariable,
+	ValidateForge,
+	ValidateMalware,
+	ValidateVariable,
+} from "./errors";
+import type { Repository as RepositoryConfiguration } from "../configurations/types";
+import type { InvalidForgeKind } from "../forges/errors";
+import type z from "zod";
 
 export class Validator {
-  forge: Forge;
-  repository: Repository;
+	forge: Forge;
+	repository: Repository;
 
-  private constructor(forge: Forge, repository: Repository) {
-    this.forge = forge;
-    this.repository = repository;
-  }
+	private constructor(forge: Forge, repository: Repository) {
+		this.forge = forge;
+		this.repository = repository;
+	}
 
-  static createValidator(
-    repository: Repository,
-    forgeKind: ForgeKind,
-  ): Result<Validator, InvalidForgeKind> {
-    return safeTry(function* () {
-      return ok(
-        new Validator(yield* getForge(repository, forgeKind), repository),
-      );
-    });
-  }
+	static createValidator(
+		repository: Repository,
+		forgeKind: ForgeKind,
+	): Result<Validator, InvalidForgeKind> {
+		return safeTry(function* () {
+			return ok(
+				new Validator(yield* getForge(repository, forgeKind), repository),
+			);
+		});
+	}
 
-  async validateRepository(): Promise<Result<void, unknown>> {
-    return safeTry(async function* (this: Validator) {
-      const repositoryDeserializer = yield* getDeserializer(
-        this.repository.configurationPath,
-      );
-      const repository = yield* repositoryDeserializer.deserializeRepository(
-        yield* await this.forge.getContent(this.repository.configurationPath),
-      );
+	async validateRepository(): Promise<Result<void, unknown>> {
+		return safeTry(
+			async function* (this: Validator) {
+				const repositoryDeserializer = yield* getDeserializer(
+					this.repository.configurationPath,
+				);
+				const repository = yield* repositoryDeserializer.deserializeRepository(
+					yield* await this.forge.getContent(this.repository.configurationPath),
+				);
 
-      const errors = [];
+				const errors = [];
 
-      const validateForgeResult = await this.validateForge(repository);
+				const validateForgeResult = await this.validateForge(repository);
 
-      if (validateForgeResult.isErr()) {
-        errors.push(...validateForgeResult.error);
-      }
+				if (validateForgeResult.isErr()) {
+					errors.push(...validateForgeResult.error);
+				}
 
-      const validateMalwareResult = await this.validateMalware(repository);
+				const validateMalwareResult = await this.validateMalware(repository);
 
-      if (validateMalwareResult.isErr()) {
-        errors.push(validateMalwareResult.error);
-      }
+				if (validateMalwareResult.isErr()) {
+					errors.push(validateMalwareResult.error);
+				}
 
-      if (errors.length > 0) {
-        return err(errors);
-      }
+				if (errors.length > 0) {
+					return err(errors);
+				}
 
-      return ok();
-    }.bind(this));
-  }
+				return ok();
+			}.bind(this),
+		);
+	}
 
-  async validateForge(
-    repository: z.infer<typeof RepositoryConfiguration>,
-  ): Promise<Result<void, ValidateForge>> {
-    const variables = [
-      [
-        repository.forge.buildingBranchVariableName,
-        this.repository.buildingBranch,
-      ],
-      [
-        repository.forge.configurationPathVariableName,
-        repository.malware.configurationPath,
-      ],
-    ];
+	async validateForge(
+		repository: z.infer<typeof RepositoryConfiguration>,
+	): Promise<Result<void, ValidateForge>> {
+		const variables = [
+			[
+				repository.forge.buildingBranchVariableName,
+				this.repository.buildingBranch,
+			],
+			[
+				repository.forge.configurationPathVariableName,
+				repository.malware.configurationPath,
+			],
+		];
 
-    const result = Result.combineWithAllErrors(
-      await Promise.all(
-        variables.map(async (variable) => {
-          const [name, value] = variable;
+		const result = Result.combineWithAllErrors(
+			await Promise.all(
+				variables.map(async (variable) => {
+					const [name, value] = variable;
 
-          return await this.validateVariable(name, value);
-        }),
-      ),
-    );
+					return await this.validateVariable(name, value);
+				}),
+			),
+		);
 
-    if (result.isErr()) {
-      return err(result.error);
-    }
+		if (result.isErr()) {
+			return err(result.error);
+		}
 
-    return ok();
-  }
+		return ok();
+	}
 
-  private async validateVariable(
-    name: string,
-    value: string,
-  ): Promise<Result<void, ValidateVariable>> {
-    return safeTry(async function* (this: Validator) {
-      let remoteValue = yield* await this.forge.getVariable(name);
+	private async validateVariable(
+		name: string,
+		value: string,
+	): Promise<Result<void, ValidateVariable>> {
+		return safeTry(
+			async function* (this: Validator) {
+				const remoteValue = yield* await this.forge.getVariable(name);
 
-      if (remoteValue !== value) {
-        return err({
-          type: "invalidVariable",
-          message: `The value of the "${name}" variable is different from the value specified in the repository configuration file.`,
-          value,
-          expectedValue: remoteValue,
-        } as InvalidVariable);
-      }
+				if (remoteValue !== value) {
+					return err({
+						type: "invalidVariable",
+						message: `The value of the "${name}" variable is different from the value specified in the repository configuration file.`,
+						value,
+						expectedValue: remoteValue,
+					} as InvalidVariable);
+				}
 
-      return ok();
-    }.bind(this));
-  }
+				return ok();
+			}.bind(this),
+		);
+	}
 
-  async validateMalware(repository: z.infer<typeof RepositoryConfiguration>): Promise<Result<void, ValidateMalware>> {
-    return safeTry(async function* (this: Validator) {
-      yield* await this.forge.getContent(repository.malware.configurationPath);
+	async validateMalware(
+		repository: z.infer<typeof RepositoryConfiguration>,
+	): Promise<Result<void, ValidateMalware>> {
+		return safeTry(
+			async function* (this: Validator) {
+				yield* await this.forge.getContent(
+					repository.malware.configurationPath,
+				);
 
-      return ok();
-    }.bind(this));
-  }
+				return ok();
+			}.bind(this),
+		);
+	}
 }

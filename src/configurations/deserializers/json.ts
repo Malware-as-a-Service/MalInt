@@ -2,16 +2,19 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { Deserializer } from ".";
-import { Repository, ServerSideMalware, ServerSideServer, } from "../types";
-import { Deserialize, FailToParse } from "../errors";
+import type { Deserializer } from ".";
+import { Repository, ServerSideMalware, ServerSideServer } from "../types";
+import type { Deserialize, FailToParse } from "../errors";
 import { Result, safeTry, err, ok } from "neverthrow";
-import { z, ZodType } from "zod";
+import type { z, ZodType } from "zod";
 
 export const extensions = new Set(["json"]);
 
 export class Json implements Deserializer {
-	deserialize<Type>(schema: ZodType<Type>, content: string): Result<Type, Deserialize> {
+	deserialize<Type>(
+		schema: ZodType<Type>,
+		content: string,
+	): Result<Type, Deserialize> {
 		return safeTry(function* () {
 			const parsedContent = yield* Result.fromThrowable(
 				JSON.parse,
@@ -46,7 +49,7 @@ export class Json implements Deserializer {
 		content: string,
 	): Result<z.infer<typeof ServerSideServer>, Deserialize> {
 		return this.deserialize(ServerSideServer, content);
-	};
+	}
 
 	deserializeServerSideMalware(
 		content: string,

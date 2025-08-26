@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { ZodError } from "zod";
+import type { ZodError } from "zod";
 
 export type Deserialize = FailToParse | Validation;
 
