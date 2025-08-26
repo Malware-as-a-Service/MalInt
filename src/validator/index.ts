@@ -6,7 +6,7 @@ import { err, ok, safeTry, Result } from "neverthrow";
 import { Forge, ForgeKind, getForge } from "../forges";
 import { Repository } from "../repositories";
 import { getDeserializer } from "../configurations/deserializers";
-import { InvalidVariable, ValidateForge, ValidateVariable } from "./errors";
+import { InvalidVariable, ValidateForge, ValidateMalware, ValidateVariable } from "./errors";
 import { Repository as RepositoryConfiguration } from "../configurations/types";
 import { InvalidForgeKind } from "../forges/errors";
 import z from "zod";
@@ -46,6 +46,12 @@ export class Validator {
 
       if (validateForgeResult.isErr()) {
         errors.push(...validateForgeResult.error);
+      }
+
+      const validateMalwareResult = await this.validateMalware(repository);
+
+      if (validateMalwareResult.isErr()) {
+        errors.push(validateMalwareResult.error);
       }
 
       if (errors.length > 0) {
@@ -102,6 +108,14 @@ export class Validator {
           expectedValue: remoteValue,
         } as InvalidVariable);
       }
+
+      return ok();
+    }.bind(this));
+  }
+
+  async validateMalware(repository: z.infer<typeof RepositoryConfiguration>): Promise<Result<void, ValidateMalware>> {
+    return safeTry(async function* (this: Validator) {
+      yield* await this.forge.getContent(repository.malware.configurationPath);
 
       return ok();
     }.bind(this));
