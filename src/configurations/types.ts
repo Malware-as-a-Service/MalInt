@@ -55,7 +55,7 @@ export const Repository = z.object({
 						configuration.malwareUiPath !== undefined),
 				{
 					message:
-						'Fields "The "malwarePath" and "malwareUiPath" fields must be present, or both undefined.',
+						'The "malwarePath" and "malwareUiPath" fields must be present, or both undefined.',
 					path: ["malwarePath", "malwareUiPath"],
 				},
 			),
