@@ -13,18 +13,6 @@
 			"require": "./dist/index.js"
 		}
 	},
-	"tsdown": {
-		"entry": [
-			"src/index.ts"
-		],
-		"dts": true,
-		"clean": true,
-		"format": [
-			"esm",
-			"cjs"
-		],
-		"swc": true
-	},
 	"scripts": {
 		"dev": "tsdown --watch",
 		"build": "tsdown",
