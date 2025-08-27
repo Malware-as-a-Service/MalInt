@@ -69,7 +69,7 @@ export class Validator {
 		);
 	}
 
-	async validateForge(
+	private async validateForge(
 		repository: z.infer<typeof RepositoryConfiguration>,
 	): Promise<Result<void, ValidateForge>> {
 		const variables = [
@@ -122,7 +122,7 @@ export class Validator {
 		);
 	}
 
-	async validateMalware(
+	private async validateMalware(
 		repository: z.infer<typeof RepositoryConfiguration>,
 	): Promise<Result<void, ValidateMalware>> {
 		return safeTry(
