@@ -3,7 +3,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { err, ok, type Result } from "neverthrow";
-import type { Repository, ServerSideMalware, ServerSideServer } from "../types";
+import type {
+	RepositoryConfiguration,
+	ServerSideMalwareConfiguration,
+	ServerSideServerConfiguration,
+} from "../types";
 import type { DeserializeError, InvalidExtensionError } from "../errors";
 import { Toml, extensions as tomlExtensions } from "./toml";
 import { Json, extensions as jsonExtensions } from "./json";
@@ -38,11 +42,11 @@ export function getDeserializer(
 export interface Deserializer {
 	deserializeRepository(
 		content: string,
-	): Result<z.infer<typeof Repository>, DeserializeError>;
+	): Result<z.infer<typeof RepositoryConfiguration>, DeserializeError>;
 	deserializeServerSideServer(
 		content: string,
-	): Result<z.infer<typeof ServerSideServer>, DeserializeError>;
+	): Result<z.infer<typeof ServerSideServerConfiguration>, DeserializeError>;
 	deserializeServerSideMalware(
 		content: string,
-	): Result<z.infer<typeof ServerSideMalware>, DeserializeError>;
+	): Result<z.infer<typeof ServerSideMalwareConfiguration>, DeserializeError>;
 }

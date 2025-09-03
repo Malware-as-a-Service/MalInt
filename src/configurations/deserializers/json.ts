@@ -3,7 +3,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { Deserializer } from ".";
-import { Repository, ServerSideMalware, ServerSideServer } from "../types";
+import {
+	RepositoryConfiguration,
+	ServerSideMalwareConfiguration,
+	ServerSideServerConfiguration,
+} from "../types";
 import type { DeserializeError, FailToParseError } from "../errors";
 import { Result, safeTry, err, ok } from "neverthrow";
 import type { z, ZodType } from "zod";
@@ -37,19 +41,19 @@ export class Json implements Deserializer {
 
 	deserializeRepository(
 		content: string,
-	): Result<z.infer<typeof Repository>, DeserializeError> {
-		return this.deserialize(Repository, content);
+	): Result<z.infer<typeof RepositoryConfiguration>, DeserializeError> {
+		return this.deserialize(RepositoryConfiguration, content);
 	}
 
 	deserializeServerSideServer(
 		content: string,
-	): Result<z.infer<typeof ServerSideServer>, DeserializeError> {
-		return this.deserialize(ServerSideServer, content);
+	): Result<z.infer<typeof ServerSideServerConfiguration>, DeserializeError> {
+		return this.deserialize(ServerSideServerConfiguration, content);
 	}
 
 	deserializeServerSideMalware(
 		content: string,
-	): Result<z.infer<typeof ServerSideMalware>, DeserializeError> {
-		return this.deserialize(ServerSideMalware, content);
+	): Result<z.infer<typeof ServerSideMalwareConfiguration>, DeserializeError> {
+		return this.deserialize(ServerSideMalwareConfiguration, content);
 	}
 }

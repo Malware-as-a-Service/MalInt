@@ -8,7 +8,7 @@ const variableNameRegex = /^(?!FORGEJO_|GITHUB_)[A-Za-z0-9_]+$/;
 const variableNameErrorMessage =
 	'Variable name must not start with "FORGEJO_" or "GITHUB_" and can only contain alphanumeric characters and underscores.';
 
-export const Repository = z.object({
+export const RepositoryConfiguration = z.object({
 	forge: z.object({
 		buildingBranchVariableName: z
 			.string()
@@ -66,14 +66,14 @@ const functionRegex = /@(\w+)\(([^)]*)\)/;
 const functionErrorMessage =
 	"Function must match format: @functionName(firstParameter, secondParameter, ...)";
 
-export const ServerSideServer = z.object().catchall(
+export const ServerSideServerConfiguration = z.object().catchall(
 	z.object({
 		function: z.string().regex(functionRegex, functionErrorMessage),
 		type: z.enum(["secret", "plaintext"]),
 	}),
 );
 
-export const ServerSideMalware = z.object().catchall(
+export const ServerSideMalwareConfiguration = z.object().catchall(
 	z.union([
 		z.object({
 			function: z.string().regex(functionRegex, functionErrorMessage),

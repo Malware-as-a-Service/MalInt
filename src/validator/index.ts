@@ -7,13 +7,13 @@ import { type Forge, type ForgeKind, getForge } from "../forges";
 import type { Repository } from "../repositories";
 import { getDeserializer } from "../configurations/deserializers";
 import type {
-	InvalidVariable,
-	ValidateForge,
-	ValidateMalware,
-	ValidateVariable,
+	InvalidVariableError,
+	ValidateForgeError,
+	ValidateMalwareError,
+	ValidateVariableError,
 } from "./errors";
-import type { Repository as RepositoryConfiguration } from "../configurations/types";
-import type { InvalidForgeKind } from "../forges/errors";
+import type { RepositoryConfiguration } from "../configurations/types";
+import type { InvalidForgeKindError } from "../forges/errors";
 import type z from "zod";
 
 export class Validator {
@@ -28,7 +28,7 @@ export class Validator {
 	static createValidator(
 		repository: Repository,
 		forgeKind: ForgeKind,
-	): Result<Validator, InvalidForgeKind> {
+	): Result<Validator, InvalidForgeKindError> {
 		return safeTry(function* () {
 			return ok(
 				new Validator(yield* getForge(repository, forgeKind), repository),
@@ -71,7 +71,7 @@ export class Validator {
 
 	private async validateForge(
 		repository: z.infer<typeof RepositoryConfiguration>,
-	): Promise<Result<void, ValidateForge>> {
+	): Promise<Result<void, ValidateForgeError>> {
 		const variables = [
 			[
 				repository.forge.buildingBranchVariableName,
@@ -103,7 +103,7 @@ export class Validator {
 	private async validateVariable(
 		name: string,
 		value: string,
-	): Promise<Result<void, ValidateVariable>> {
+	): Promise<Result<void, ValidateVariableError>> {
 		return safeTry(
 			async function* (this: Validator) {
 				const remoteValue = yield* await this.forge.getVariable(name);
@@ -114,7 +114,7 @@ export class Validator {
 						message: `The value of the "${name}" variable is different from the value specified in the repository configuration file.`,
 						value,
 						expectedValue: remoteValue,
-					} as InvalidVariable);
+					} as InvalidVariableError);
 				}
 
 				return ok();
@@ -124,7 +124,7 @@ export class Validator {
 
 	private async validateMalware(
 		repository: z.infer<typeof RepositoryConfiguration>,
-	): Promise<Result<void, ValidateMalware>> {
+	): Promise<Result<void, ValidateMalwareError>> {
 		return safeTry(
 			async function* (this: Validator) {
 				yield* await this.forge.getContent(
