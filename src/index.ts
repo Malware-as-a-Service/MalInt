@@ -6,9 +6,14 @@ import { ok, Result, safeTry } from "neverthrow";
 import { Forge, ForgeKind, getForge } from "./forges";
 import { Repository } from "./repositories";
 import { RepositoryConfiguration } from "./configurations/types";
-import { getDeserializer } from "./configurations/deserializers";
+import {
+	deserializeJsonSchema,
+	deserializeUiSchema,
+	getDeserializer,
+} from "./configurations/deserializers";
 import { z } from "zod";
-import { CreateMalIntError } from "./errors";
+import { CreateMalIntError, GetClientSideConfigurations } from "./errors";
+import { ClientSideConfigurations } from "./types";
 
 export class MalInt {
 	forge: Forge;
@@ -38,5 +43,48 @@ export class MalInt {
 
 			return ok(new MalInt(forge, repository, repositoryConfiguration));
 		});
+	}
+
+	async getClientSideConfigurations(): Promise<
+		Result<ClientSideConfigurations, GetClientSideConfigurations>
+	> {
+		return safeTry(
+			async function* (this: MalInt) {
+				let configuration: ClientSideConfigurations = {};
+
+				const { serverPath, serverUiPath, malwarePath, malwareUiPath } =
+					this.repositoryConfiguration.configurations.clientSide;
+
+				if (serverPath) {
+					const schema = yield* deserializeJsonSchema(
+						yield* await this.forge.getContent(serverPath),
+					);
+					const uiSchema = yield* deserializeUiSchema(
+						yield* await this.forge.getContent(serverUiPath as string),
+					);
+
+					configuration.server = {
+						schema,
+						uiSchema,
+					};
+				}
+
+				if (malwarePath) {
+					const schema = yield* deserializeJsonSchema(
+						yield* await this.forge.getContent(malwarePath),
+					);
+					const uiSchema = yield* deserializeUiSchema(
+						yield* await this.forge.getContent(malwareUiPath as string),
+					);
+
+					configuration.malware = {
+						schema,
+						uiSchema,
+					};
+				}
+
+				return ok(configuration);
+			}.bind(this),
+		);
 	}
 }

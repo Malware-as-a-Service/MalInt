@@ -4,6 +4,7 @@
 
 import {
 	DeserializeError,
+	DeserializeJsonSchemaError,
 	InvalidExtensionError,
 } from "./configurations/errors";
 import { GetContentError, InvalidForgeKindError } from "./forges/errors";
@@ -12,4 +13,9 @@ export type CreateMalIntError =
 	| InvalidForgeKindError
 	| InvalidExtensionError
 	| GetContentError
+	| DeserializeError;
+
+export type GetClientSideConfigurations =
+	| GetContentError
+	| DeserializeJsonSchemaError
 	| DeserializeError;
