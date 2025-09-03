@@ -2,16 +2,23 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { err, ok, type Result } from "neverthrow";
+import { err, ok, safeTry, Result } from "neverthrow";
 import type {
 	RepositoryConfiguration,
 	ServerSideMalwareConfiguration,
 	ServerSideServerConfiguration,
 } from "../types";
-import type { DeserializeError, InvalidExtensionError } from "../errors";
+import type {
+	DeserializeError,
+	DeserializeJsonSchemaError,
+	FailToParseError,
+	InvalidExtensionError,
+} from "../errors";
 import { Toml, extensions as tomlExtensions } from "./toml";
 import { Json, extensions as jsonExtensions } from "./json";
 import type { z } from "zod";
+import { JSONSchemaType } from "ajv";
+import Ajv from "ajv/dist/2020";
 import pathModule from "node:path";
 
 const validExtensions = Array.from(
@@ -36,6 +43,29 @@ export function getDeserializer(
 		message: `Invalid file extension "${extension}". Valid extensions are: ${validExtensions.join(", ")}`,
 		extension,
 		validExtensions: validExtensions,
+	});
+}
+
+export function deserializeJsonSchema(
+	content: string,
+): Result<JSONSchemaType<unknown>, DeserializeJsonSchemaError> {
+	return safeTry(function* () {
+		const parsedContent = yield* Result.fromThrowable(
+			JSON.parse,
+			(error): FailToParseError => ({
+				type: "failToParse",
+				message: `Failed to parse JSON: ${error instanceof Error ? error.message : String(error)}`,
+				error: error instanceof Error ? error : new Error(String(error)),
+			}),
+		)(content);
+
+		const { errors } = new Ajv().compile(parsedContent);
+
+		if (errors) {
+			return err(errors);
+		}
+
+		return ok(parsedContent);
 	});
 }
 
