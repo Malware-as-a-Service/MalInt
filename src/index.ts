@@ -2,4 +2,54 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-export default class MalInt { }
+import { ok, Result, safeTry } from "neverthrow";
+import { Forge, ForgeKind, getForge } from "./forges";
+import { Repository } from "./repositories";
+import { RepositoryConfiguration } from "./configurations/types";
+import { getDeserializer } from "./configurations/deserializers";
+import { z } from "zod";
+import { JSONSchemaType } from "ajv";
+import { GetContentError, InvalidForgeKindError } from "./forges/errors";
+import {
+  DeserializeError,
+  InvalidExtensionError,
+} from "./configurations/errors";
+
+export class MalInt {
+  forge: Forge;
+  repository: Repository;
+  repositoryConfiguration: z.infer<typeof RepositoryConfiguration>;
+
+  private constructor(
+    forge: Forge,
+    repository: Repository,
+    repositoryConfiguration: z.infer<typeof RepositoryConfiguration>,
+  ) {
+    this.forge = forge;
+    this.repository = repository;
+    this.repositoryConfiguration = repositoryConfiguration;
+  }
+
+  static async createMalInt(
+    repository: Repository,
+    forgeKind: ForgeKind,
+  ): Promise<
+    Result<
+      MalInt,
+      | InvalidForgeKindError
+      | InvalidExtensionError
+      | GetContentError
+      | DeserializeError
+    >
+  > {
+    return safeTry(async function* () {
+      const forge = yield* getForge(repository, forgeKind);
+      const deserializer = yield* getDeserializer(repository.configurationPath);
+      const repositoryConfiguration = yield* deserializer.deserializeRepository(
+        yield* await forge.getContent(repository.configurationPath),
+      );
+
+      return ok(new MalInt(forge, repository, repositoryConfiguration));
+    });
+  }
+}
