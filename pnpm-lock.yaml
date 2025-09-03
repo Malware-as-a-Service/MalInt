@@ -17,9 +17,6 @@ importers:
       neverthrow:
         specifier: ^8.2.0
         version: 8.2.0
-      reflect-metadata:
-        specifier: ^0.2.2
-        version: 0.2.2
       smol-toml:
         specifier: ^1.4.1
         version: 1.4.1
@@ -919,9 +916,6 @@ packages:
   readdirp@4.1.2:
     resolution: {integrity: sha512-GDhwkLfywWL2s6vEjyhri+eXmfH6j1L7JE27WhqLeYzoh/A3DBaYGEj2H/HFZCn/kMfim73FXxEJTw06WtxQwg==}
     engines: {node: '>= 14.18.0'}
-
-  reflect-metadata@0.2.2:
-    resolution: {integrity: sha512-urBwgfrvVP/eAyXx4hluJivBKzuEbSQs9rKWCrCkbSxNv8mxPcUZKeuoF3Uy4mJl3Lwprp6yy5/39VWigZ4K6Q==}
 
   resolve-pkg-maps@1.0.0:
     resolution: {integrity: sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw==}
@@ -1870,8 +1864,6 @@ snapshots:
   quansync@0.2.11: {}
 
   readdirp@4.1.2: {}
-
-  reflect-metadata@0.2.2: {}
 
   resolve-pkg-maps@1.0.0: {}
 
