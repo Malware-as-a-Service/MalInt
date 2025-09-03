@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect, test } from "vitest";
-import type { Validation } from "../../../src/configurations/errors";
+import { ZodError } from "zod";
 import { stringify } from "smol-toml";
 import { Toml } from "../../../src/configurations/deserializers/toml";
 import {
@@ -30,8 +30,7 @@ test("Return Validation error on invalid repository object", () => {
 	expect(result.isErr()).toBe(true);
 
 	const error = result._unsafeUnwrapErr();
-	expect(error.type).toBe("validation");
-	expect((error as Validation).errors).toBeDefined();
+	expect(error).toBeInstanceOf(ZodError);
 });
 
 test("Deserialize repository configuration", () => {
@@ -48,8 +47,7 @@ test("Return Validation error on invalid server side server object", () => {
 	expect(result.isErr()).toBe(true);
 
 	const error = result._unsafeUnwrapErr();
-	expect(error.type).toBe("validation");
-	expect((error as Validation).errors).toBeDefined();
+	expect(error).toBeInstanceOf(ZodError);
 });
 
 test("Deserialize server side server configuration", () => {
@@ -68,8 +66,7 @@ test("Return Validation error on invalid server side malware object", () => {
 	expect(result.isErr()).toBe(true);
 
 	const error = result._unsafeUnwrapErr();
-	expect(error.type).toBe("validation");
-	expect((error as Validation).errors).toBeDefined();
+	expect(error).toBeInstanceOf(ZodError);
 });
 
 test("Deserialize server side malware configuration", () => {

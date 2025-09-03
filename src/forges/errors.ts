@@ -4,42 +4,42 @@
 
 import type { ForgeKind } from ".";
 
-export type GetVariable = NotFound | Unexpected;
-export type GetFile = NotFound | Unexpected;
-export type GetContent = GetFile;
-export type WriteContent =
-	| GetFile
-	| NotFound
-	| Conflict
-	| Validation
-	| Unexpected;
+export type GetVariableError = NotFoundError | UnexpectedError;
+export type GetFileError = NotFoundError | UnexpectedError;
+export type GetContentError = GetFileError;
+export type WriteContentError =
+	| GetFileError
+	| NotFoundError
+	| ConflictError
+	| ValidationError
+	| UnexpectedError;
 
-export interface InvalidForgeKind {
+export interface InvalidForgeKindError {
 	type: "invalidForgeKind";
 	message: string;
 	kind: ForgeKind;
 	validKinds: ForgeKind[];
 }
 
-export interface NotFound {
+export interface NotFoundError {
 	type: "notFound";
 	message: string;
 	resource: string;
 }
 
-export interface Conflict {
+export interface ConflictError {
 	type: "conflict";
 	message: string;
 	detail?: string;
 }
 
-export interface Validation {
+export interface ValidationError {
 	type: "validation";
 	message: string;
 	detail?: string;
 }
 
-export interface Unexpected {
+export interface UnexpectedError {
 	type: "unexpected";
 	status: number;
 	message: string;

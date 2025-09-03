@@ -5,17 +5,17 @@
 import { z } from "zod";
 
 export interface Handler {
-  parametersSchema: z.ZodTuple;
-  function: (...args: z.infer<z.ZodTuple>) => unknown;
+	parametersSchema: z.ZodTuple;
+	function: (...args: z.infer<z.ZodTuple>) => unknown;
 }
 
 export const registry = new Map<string, Handler>();
 
 export function Function(name: string) {
-  return function (target: any, propertyKey: string | symbol) {
-    registry.set(name, {
-      parametersSchema: target[propertyKey].parametersSchema,
-      function: target[propertyKey],
-    });
-  };
+	return function (target: any, propertyKey: string | symbol) {
+		registry.set(name, {
+			parametersSchema: target[propertyKey].parametersSchema,
+			function: target[propertyKey],
+		});
+	};
 }

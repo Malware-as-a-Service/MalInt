@@ -4,23 +4,17 @@
 
 import type { ZodError } from "zod";
 
-export type Deserialize = FailToParse | Validation;
+export type DeserializeError = FailToParseError | ZodError;
 
-export interface InvalidExtension {
+export interface InvalidExtensionError {
 	type: "invalidExtension";
 	message: string;
 	extension: string;
 	validExtensions: string[];
 }
 
-export interface FailToParse {
+export interface FailToParseError {
 	type: "failToParse";
 	message: string;
 	error: Error;
-}
-
-export interface Validation {
-	type: "validation";
-	message: string;
-	errors: ZodError;
 }

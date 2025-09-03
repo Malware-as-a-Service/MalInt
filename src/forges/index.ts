@@ -4,10 +4,10 @@
 
 import { err, ok, type Result } from "neverthrow";
 import type {
-	GetContent,
-	GetVariable,
-	InvalidForgeKind,
-	WriteContent,
+	GetContentError,
+	GetVariableError,
+	InvalidForgeKindError,
+	WriteContentError,
 } from "./errors";
 import { Forgejo } from "./forgejo";
 import type { Repository } from "../repositories";
@@ -21,7 +21,7 @@ const validKinds = Object.values(ForgeKind);
 export function getForge(
 	repository: Repository,
 	kind: ForgeKind,
-): Result<Forge, InvalidForgeKind> {
+): Result<Forge, InvalidForgeKindError> {
 	switch (kind) {
 		case ForgeKind.Forgejo:
 			return ok(new Forgejo(repository));
@@ -36,11 +36,11 @@ export function getForge(
 }
 
 export interface Forge {
-	getVariable(name: string): Promise<Result<string, GetVariable>>;
-	getContent(path: string): Promise<Result<string, GetContent>>;
+	getVariable(name: string): Promise<Result<string, GetVariableError>>;
+	getContent(path: string): Promise<Result<string, GetContentError>>;
 	writeContent(
 		path: string,
 		message: string,
 		content: string,
-	): Promise<Result<string, WriteContent>>;
+	): Promise<Result<string, WriteContentError>>;
 }

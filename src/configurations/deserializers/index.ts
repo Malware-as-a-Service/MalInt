@@ -4,7 +4,7 @@
 
 import { err, ok, type Result } from "neverthrow";
 import type { Repository, ServerSideMalware, ServerSideServer } from "../types";
-import type { Deserialize, InvalidExtension } from "../errors";
+import type { DeserializeError, InvalidExtensionError } from "../errors";
 import { Toml, extensions as tomlExtensions } from "./toml";
 import { Json, extensions as jsonExtensions } from "./json";
 import type { z } from "zod";
@@ -16,7 +16,7 @@ const validExtensions = Array.from(
 
 export function getDeserializer(
 	path: string,
-): Result<Deserializer, InvalidExtension> {
+): Result<Deserializer, InvalidExtensionError> {
 	const extension = pathModule.extname(path).slice(1);
 
 	if (jsonExtensions.has(extension)) {
@@ -38,11 +38,11 @@ export function getDeserializer(
 export interface Deserializer {
 	deserializeRepository(
 		content: string,
-	): Result<z.infer<typeof Repository>, Deserialize>;
+	): Result<z.infer<typeof Repository>, DeserializeError>;
 	deserializeServerSideServer(
 		content: string,
-	): Result<z.infer<typeof ServerSideServer>, Deserialize>;
+	): Result<z.infer<typeof ServerSideServer>, DeserializeError>;
 	deserializeServerSideMalware(
 		content: string,
-	): Result<z.infer<typeof ServerSideMalware>, Deserialize>;
+	): Result<z.infer<typeof ServerSideMalware>, DeserializeError>;
 }

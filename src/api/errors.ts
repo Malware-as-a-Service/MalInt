@@ -4,10 +4,10 @@
 
 import { ZodError } from "zod";
 
-export type Invoke = FunctionNotFound | ZodError;
+export type InvokeError = FunctionNotFoundError | ZodError;
 
-export interface FunctionNotFound {
-  type: "functionNotFound";
-  message: string;
-  name: string;
+export interface FunctionNotFoundError {
+	type: "functionNotFound";
+	message: string;
+	name: string;
 }

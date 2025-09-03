@@ -6,13 +6,13 @@ import { Function } from "../registry";
 import { z } from "zod";
 
 export class Networking {
-  @Function("serverHostname")
-  static serverHostname = Object.assign(
-    (hostname: string) => {
-      return hostname;
-    },
-    {
-      parametersSchema: z.tuple([z.hostname()]),
-    },
-  );
+	@Function("serverHostname")
+	static serverHostname = Object.assign(
+		(hostname: string) => {
+			return hostname;
+		},
+		{
+			parametersSchema: z.tuple([z.hostname()]),
+		},
+	);
 }
