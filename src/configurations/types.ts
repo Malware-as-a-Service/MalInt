@@ -85,4 +85,4 @@ export const ServerSideMalwareConfiguration = z.object().catchall(
 );
 
 // Needs to be done
-export const UiSchema = z.object({});
+export const UiSchema = z.any();
