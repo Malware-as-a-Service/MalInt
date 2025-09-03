@@ -4,7 +4,7 @@
 
 import { z } from "zod";
 
-interface Handler {
+export interface Handler {
   parametersSchema: z.ZodTuple;
   function: (...args: z.infer<z.ZodTuple>) => unknown;
 }
