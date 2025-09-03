@@ -3,10 +3,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { err, ok, safeTry, Result } from "neverthrow";
-import type {
-	RepositoryConfiguration,
-	ServerSideMalwareConfiguration,
-	ServerSideServerConfiguration,
+import {
+	UiSchema,
+	type RepositoryConfiguration,
+	type ServerSideMalwareConfiguration,
+	type ServerSideServerConfiguration,
 } from "../types";
 import type {
 	DeserializeError,
@@ -66,6 +67,29 @@ export function deserializeJsonSchema(
 		}
 
 		return ok(parsedContent);
+	});
+}
+
+export function deserializeUiSchema(
+	content: string,
+): Result<z.infer<typeof UiSchema>, DeserializeError> {
+	return safeTry(function* () {
+		const parsedContent = yield* Result.fromThrowable(
+			JSON.parse,
+			(error): FailToParseError => ({
+				type: "failToParse",
+				message: `Failed to parse JSON: ${error instanceof Error ? error.message : String(error)}`,
+				error: error instanceof Error ? error : new Error(String(error)),
+			}),
+		)(content);
+
+		const result = UiSchema.safeParse(parsedContent);
+
+		if (!result.success) {
+			return err(result.error);
+		}
+
+		return ok(result.data);
 	});
 }
 
