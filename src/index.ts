@@ -8,7 +8,7 @@ import { Repository } from "./repositories";
 import { RepositoryConfiguration } from "./configurations/types";
 import { getDeserializer } from "./configurations/deserializers";
 import { z } from "zod";
-import { MalIntError } from "./errors";
+import { CreateMalIntError } from "./errors";
 
 export class MalInt {
 	forge: Forge;
@@ -28,7 +28,7 @@ export class MalInt {
 	static async createMalInt(
 		repository: Repository,
 		forgeKind: ForgeKind,
-	): Promise<Result<MalInt, MalIntError>> {
+	): Promise<Result<MalInt, CreateMalIntError>> {
 		return safeTry(async function* () {
 			const forge = yield* getForge(repository, forgeKind);
 			const deserializer = yield* getDeserializer(repository.configurationPath);

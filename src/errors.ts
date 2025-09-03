@@ -8,7 +8,7 @@ import {
 } from "./configurations/errors";
 import { GetContentError, InvalidForgeKindError } from "./forges/errors";
 
-export type MalIntError =
+export type CreateMalIntError =
 	| InvalidForgeKindError
 	| InvalidExtensionError
 	| GetContentError
