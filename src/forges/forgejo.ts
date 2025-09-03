@@ -53,7 +53,7 @@ export class Forgejo implements Forge {
 			});
 		}
 
-		return ok(response.data.data ?? "");
+		return ok(response.data.data as string);
 	}
 
 	private async getFile(
@@ -99,7 +99,7 @@ export class Forgejo implements Forge {
 			async function* (this: Forgejo) {
 				const file = yield* await this.getFile(path);
 
-				return ok(Buffer.from(file.content ?? "", "base64").toString());
+				return ok(Buffer.from(file.content as string, "base64").toString());
 			}.bind(this),
 		);
 	}
@@ -112,7 +112,7 @@ export class Forgejo implements Forge {
 		return safeTry(
 			async function* (this: Forgejo) {
 				const file = yield* await this.getFile(path);
-				const sha = file.sha ?? "";
+				const sha = file.sha as string;
 
 				const response = await this.client.repos.repoUpdateFile(
 					this.repository.ownerUsername,
@@ -155,7 +155,7 @@ export class Forgejo implements Forge {
 					}
 				}
 
-				return ok(response.data.commit?.sha ?? "");
+				return ok(response.data.commit?.sha as string);
 			}.bind(this),
 		);
 	}
