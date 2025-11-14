@@ -4,15 +4,13 @@
 
 import type { ForgeKind } from ".";
 
-export type GetVariableError = NotFoundError | UnexpectedError;
-export type GetFileError = NotFoundError | UnexpectedError;
-export type GetContentError = GetFileError;
-export type WriteContentError =
-	| GetFileError
-	| NotFoundError
-	| ConflictError
-	| ValidationError
-	| UnexpectedError;
+export type SetVariableError = GenericError;
+export type SetSecretError = GenericError;
+export type GetContentError = NotFoundError | GenericError;
+export type WriteContentError = NotFoundError | ConflictError | GenericError;
+export type DispatchWorkflowError = NotFoundError | GenericError;
+export type GetRunStatusError = NotFoundError | GenericError;
+export type GetActiveRunError = GenericError;
 
 export interface InvalidForgeKindError {
 	type: "invalidForgeKind";
@@ -33,15 +31,9 @@ export interface ConflictError {
 	detail?: string;
 }
 
-export interface ValidationError {
-	type: "validation";
-	message: string;
-	detail?: string;
-}
-
-export interface UnexpectedError {
-	type: "unexpected";
+export interface GenericError {
+	type: "generic";
 	status: number;
 	message: string;
-	error: Error;
+	error?: Error;
 }

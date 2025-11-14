@@ -2,20 +2,21 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { err, ok, safeTry } from "neverthrow";
-import type { Forge } from ".";
+import { err, ok, type Result, safeTry } from "neverthrow";
+import { RunStatus, type Forge } from ".";
 import { type Api, type ContentsResponse, forgejoApi } from "forgejo-js";
 import type {
 	ConflictError,
+	DispatchWorkflowError,
+	GenericError,
+	GetActiveRunError,
 	GetContentError,
-	GetFileError,
-	GetVariableError,
+	GetRunStatusError,
 	NotFoundError,
-	UnexpectedError,
-	ValidationError,
+	SetSecretError,
+	SetVariableError,
 	WriteContentError,
 } from "./errors";
-import type { Result } from "neverthrow";
 import type { Repository } from "../repositories";
 
 export class Forgejo implements Forge {
@@ -29,36 +30,9 @@ export class Forgejo implements Forge {
 		this.repository = repository;
 	}
 
-	async getVariable(name: string): Promise<Result<string, GetVariableError>> {
-		const response = await this.client.repos.getRepoVariable(
-			this.repository.ownerUsername,
-			this.repository.name,
-			name,
-		);
-
-		if (!response.ok) {
-			if (response.status === 404) {
-				return err({
-					type: "notFound",
-					message: `Variable "${name}" not found.`,
-					resource: name,
-				});
-			}
-
-			return err({
-				type: "unexpected",
-				status: response.status,
-				message: `Unexpected error while fetching variable "${name}".`,
-				error: response.error as Error,
-			});
-		}
-
-		return ok(response.data.data as string);
-	}
-
 	private async getFile(
 		path: string,
-	): Promise<Result<ContentsResponse, GetFileError>> {
+	): Promise<Result<ContentsResponse, GetContentError>> {
 		const response = await this.client.repos.repoGetContents(
 			this.repository.ownerUsername,
 			this.repository.name,
@@ -76,9 +50,9 @@ export class Forgejo implements Forge {
 			}
 
 			return err({
-				type: "unexpected",
+				type: "generic",
 				status: response.status,
-				message: `Unexpected error while fetching file "${path}".`,
+				message: `Failed to fetch file "${path}".`,
 				error: response.error as Error,
 			});
 		}
@@ -139,24 +113,184 @@ export class Forgejo implements Forge {
 								type: "conflict",
 								message: `Conflict while updating file "${path}".`,
 							} as ConflictError);
-						case 422:
-							return err({
-								type: "validation",
-								message: `Validation error while updating file "${path}".`,
-								detail: response.error.message,
-							} as ValidationError);
 						default:
 							return err({
-								type: "unexpected",
+								type: "generic",
 								status: response.status,
-								message: `Unexpected error while updating file "${path}".`,
+								message: `Failed to update file "${path}".`,
 								error: response.error as Error,
-							} as UnexpectedError);
+							} as GenericError);
 					}
 				}
 
 				return ok(response.data.commit?.sha as string);
 			}.bind(this),
 		);
+	}
+
+	async setVariable(
+		name: string,
+		value: string,
+	): Promise<Result<void, SetVariableError>> {
+		const response = await this.client.repos.createRepoVariable(
+			this.repository.ownerUsername,
+			this.repository.name,
+			name,
+			{ value },
+		);
+
+		if (!response.ok) {
+			return err({
+				type: "generic",
+				status: response.status,
+				message: `Failed to set variable "${name}".`,
+				error: response.error as Error,
+			});
+		}
+
+		return ok(undefined);
+	}
+
+	async setSecret(
+		name: string,
+		value: string,
+	): Promise<Result<void, SetSecretError>> {
+		const response = await this.client.repos.updateRepoSecret(
+			this.repository.ownerUsername,
+			this.repository.name,
+			name,
+			{ data: value },
+		);
+
+		if (!response.ok) {
+			return err({
+				type: "generic",
+				status: response.status,
+				message: `Failed to set secret "${name}".`,
+				error: response.error as Error,
+			});
+		}
+
+		return ok(undefined);
+	}
+
+	async dispatchWorkflow(
+		workflowName: string,
+		branch: string,
+		inputs?: Record<string, string>,
+	): Promise<Result<number, DispatchWorkflowError>> {
+		const response = await this.client.repos.dispatchWorkflow(
+			this.repository.ownerUsername,
+			this.repository.name,
+			workflowName,
+			{ ref: branch, inputs },
+		);
+
+		if (!response.ok) {
+			if (response.status === 404) {
+				return err({
+					type: "notFound",
+					message: `Workflow "${workflowName}" not found.`,
+					resource: workflowName,
+				});
+			}
+
+			return err({
+				type: "generic",
+				status: response.status,
+				message: `Failed to dispatch workflow "${workflowName}".`,
+				error: response.error as Error,
+			});
+		}
+
+		const runIdentifier = response.data.id as number;
+		return ok(runIdentifier);
+	}
+
+	async getRunStatus(
+		runIdentifier: number,
+	): Promise<Result<RunStatus, GetRunStatusError>> {
+		const response = await this.client.request<{ status: string }>({
+			path: `/repos/${this.repository.ownerUsername}/${this.repository.name}/actions/runs/${runIdentifier}`,
+			method: "GET",
+			secure: true,
+			format: "json",
+		});
+
+		if (!response.ok) {
+			if (response.status === 404) {
+				return err({
+					type: "notFound",
+					message: `Workflow run with identifier "${runIdentifier}" not found.`,
+					resource: runIdentifier.toString(),
+				});
+			}
+
+			return err({
+				type: "generic",
+				status: response.status,
+				message: `Failed to get workflow run status for run identifier "${runIdentifier}".`,
+				error: response.error as Error,
+			});
+		}
+
+		const status = response.data.status;
+
+		switch (status) {
+			case "unknown":
+				return ok(RunStatus.Unknown);
+			case "waiting":
+				return ok(RunStatus.Waiting);
+			case "running":
+				return ok(RunStatus.Running);
+			case "success":
+				return ok(RunStatus.Success);
+			case "failure":
+				return ok(RunStatus.Failure);
+			case "cancelled":
+				return ok(RunStatus.Cancelled);
+			case "skipped":
+				return ok(RunStatus.Skipped);
+			case "blocked":
+				return ok(RunStatus.Blocked);
+			default:
+				return ok(RunStatus.Unknown);
+		}
+	}
+
+	async getActiveRun(
+		workflowName: string,
+		branch: string,
+	): Promise<Result<number | null, GetActiveRunError>> {
+		const response = await this.client.request<{
+			workflow_runs: Array<{
+				id: number;
+				workflow_id: string;
+				prettyref: string;
+			}>;
+		}>({
+			path: `/repos/${this.repository.ownerUsername}/${this.repository.name}/actions/runs`,
+			method: "GET",
+			secure: true,
+			format: "json",
+			query: {
+				status: "running,waiting",
+			},
+		});
+
+		if (!response.ok) {
+			return err({
+				type: "generic",
+				status: response.status,
+				message: `Failed to list workflow runs.`,
+				error: response.error as Error,
+			});
+		}
+
+		const activeRun = response.data.workflow_runs?.find(
+			(run) => run.workflow_id === workflowName && run.prettyref === branch,
+		);
+
+		return ok(activeRun?.id ?? null);
 	}
 }
