@@ -21,14 +21,6 @@ export const RepositoryConfiguration = z.object({
 				.string()
 				.regex(variableNameRegex, variableNameErrorMessage),
 		}),
-		variables: z.object({
-			buildingBranch: z
-				.string()
-				.regex(variableNameRegex, variableNameErrorMessage),
-			configurationPath: z
-				.string()
-				.regex(variableNameRegex, variableNameErrorMessage),
-		}),
 	}),
 	server: z.object({
 		workflow: z.string(),
@@ -48,6 +40,10 @@ export const RepositoryConfiguration = z.object({
 	malware: z.object({
 		configurationPath: z.string(),
 		workflow: z.string(),
+		artifactName: z.object({
+			name: z.string(),
+			value: z.string(),
+		}),
 	}),
 	configurations: z.object({
 		serverSide: z.object({
