@@ -8,11 +8,9 @@ import type {
 	DownloadArtifactError,
 	GetActiveRunError,
 	GetContentError,
-	GetRunByCommitError,
 	GetRunStatusError,
 	InvalidForgeKindError,
 	SetSecretError,
-	SetVariableError,
 	WriteContentError,
 } from "./errors";
 import { Forgejo } from "./forgejo";
@@ -53,10 +51,6 @@ export function getForge(
 }
 
 export interface Forge {
-	setVariable(
-		name: string,
-		value: string,
-	): Promise<Result<void, SetVariableError>>;
 	setSecret(name: string, value: string): Promise<Result<void, SetSecretError>>;
 	getContent(path: string): Promise<Result<string, GetContentError>>;
 	writeContent(
@@ -76,11 +70,6 @@ export interface Forge {
 		workflow: string,
 		branch: string,
 	): Promise<Result<number | null, GetActiveRunError>>;
-	getRunByCommit(
-		workflow: string,
-		branch: string,
-		sha: string,
-	): Promise<Result<number | null, GetRunByCommitError>>;
 	downloadArtifact(
 		runIdentifier: number,
 		name: string,

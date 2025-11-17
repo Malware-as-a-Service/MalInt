@@ -8,11 +8,11 @@ import { RunStatus, type Forge } from ".";
 import type { Repository } from "../repositories";
 import type {
 	DispatchWorkflowError,
+	DownloadArtifactError,
 	GetActiveRunError,
 	GetContentError,
 	GetRunStatusError,
 	SetSecretError,
-	SetVariableError,
 	WriteContentError,
 } from "./errors";
 
@@ -123,49 +123,6 @@ export class Forgejo implements Forge {
 				return ok(response.data.commit?.sha as string);
 			}.bind(this),
 		);
-	}
-
-	async setVariable(
-		name: string,
-		value: string,
-	): Promise<Result<void, SetVariableError>> {
-		const updateResponse = await this.client.repos.updateRepoVariable(
-			this.repository.ownerUsername,
-			this.repository.name,
-			name,
-			{ value },
-		);
-
-		if (updateResponse.ok) {
-			return ok(undefined);
-		}
-
-		if (updateResponse.status !== 404) {
-			return err({
-				type: "generic",
-				status: updateResponse.status,
-				message: `Failed to set variable "${name}".`,
-				error: updateResponse.error as Error,
-			});
-		}
-
-		const createResponse = await this.client.repos.createRepoVariable(
-			this.repository.ownerUsername,
-			this.repository.name,
-			name,
-			{ value },
-		);
-
-		if (!createResponse.ok) {
-			return err({
-				type: "generic",
-				status: createResponse.status,
-				message: `Failed to create variable "${name}".`,
-				error: createResponse.error as Error,
-			});
-		}
-
-		return ok(undefined);
 	}
 
 	async setSecret(
@@ -302,5 +259,36 @@ export class Forgejo implements Forge {
 		);
 
 		return ok(activeRun?.id ?? null);
+	}
+
+	async downloadArtifact(
+		runIdentifier: number,
+		name: string,
+	): Promise<Result<Buffer, DownloadArtifactError>> {
+		const response = await this.client.request<ArrayBuffer>({
+			path: `/${this.repository.ownerUsername}/${this.repository.name}/actions/runs/${runIdentifier}/artifacts/${name}`,
+			method: "GET",
+			secure: true,
+			format: "blob",
+		});
+
+		if (!response.ok) {
+			if (response.status === 404) {
+				return err({
+					type: "notFound",
+					message: `Artifact "${name}" not found for run "${runIdentifier}".`,
+					resource: name,
+				});
+			}
+
+			return err({
+				type: "generic",
+				status: response.status,
+				message: `Failed to download artifact "${name}".`,
+				error: response.error as Error,
+			});
+		}
+
+		return ok(Buffer.from(response.data));
 	}
 }
