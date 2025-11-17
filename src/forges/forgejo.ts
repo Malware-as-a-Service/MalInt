@@ -3,25 +3,22 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { err, ok, type Result, safeTry } from "neverthrow";
-import { RunStatus, type Forge } from ".";
 import { type Api, type ContentsResponse, forgejoApi } from "forgejo-js";
+import { RunStatus, type Forge } from ".";
+import type { Repository } from "../repositories";
 import type {
-	ConflictError,
 	DispatchWorkflowError,
-	GenericError,
 	GetActiveRunError,
 	GetContentError,
 	GetRunStatusError,
-	NotFoundError,
 	SetSecretError,
 	SetVariableError,
 	WriteContentError,
 } from "./errors";
-import type { Repository } from "../repositories";
 
 export class Forgejo implements Forge {
-	client: Api<unknown>;
-	repository: Repository;
+	private readonly client: Api<unknown>;
+	private readonly repository: Repository;
 
 	constructor(repository: Repository) {
 		this.client = forgejoApi(repository.baseAddress, {
@@ -86,7 +83,6 @@ export class Forgejo implements Forge {
 		return safeTry(
 			async function* (this: Forgejo) {
 				const file = yield* await this.getFile(path);
-				const sha = file.sha as string;
 
 				const response = await this.client.repos.repoUpdateFile(
 					this.repository.ownerUsername,
@@ -96,31 +92,32 @@ export class Forgejo implements Forge {
 						branch: this.repository.buildingBranch,
 						content: Buffer.from(content).toString("base64"),
 						message,
-						sha,
+						sha: file.sha as string,
 					},
 				);
 
 				if (!response.ok) {
-					switch (response.status) {
-						case 404:
-							return err({
-								type: "notFound",
-								message: `File "${path}" not found.`,
-								resource: path,
-							} as NotFoundError);
-						case 409:
-							return err({
-								type: "conflict",
-								message: `Conflict while updating file "${path}".`,
-							} as ConflictError);
-						default:
-							return err({
-								type: "generic",
-								status: response.status,
-								message: `Failed to update file "${path}".`,
-								error: response.error as Error,
-							} as GenericError);
+					if (response.status === 404) {
+						return err({
+							type: "notFound" as const,
+							message: `File "${path}" not found.`,
+							resource: path,
+						});
 					}
+
+					if (response.status === 409) {
+						return err({
+							type: "conflict" as const,
+							message: `Conflict while updating file "${path}".`,
+						});
+					}
+
+					return err({
+						type: "generic" as const,
+						status: response.status,
+						message: `Failed to update file "${path}".`,
+						error: response.error as Error,
+					});
 				}
 
 				return ok(response.data.commit?.sha as string);
@@ -132,19 +129,39 @@ export class Forgejo implements Forge {
 		name: string,
 		value: string,
 	): Promise<Result<void, SetVariableError>> {
-		const response = await this.client.repos.createRepoVariable(
+		const updateResponse = await this.client.repos.updateRepoVariable(
 			this.repository.ownerUsername,
 			this.repository.name,
 			name,
 			{ value },
 		);
 
-		if (!response.ok) {
+		if (updateResponse.ok) {
+			return ok(undefined);
+		}
+
+		if (updateResponse.status !== 404) {
 			return err({
 				type: "generic",
-				status: response.status,
+				status: updateResponse.status,
 				message: `Failed to set variable "${name}".`,
-				error: response.error as Error,
+				error: updateResponse.error as Error,
+			});
+		}
+
+		const createResponse = await this.client.repos.createRepoVariable(
+			this.repository.ownerUsername,
+			this.repository.name,
+			name,
+			{ value },
+		);
+
+		if (!createResponse.ok) {
+			return err({
+				type: "generic",
+				status: createResponse.status,
+				message: `Failed to create variable "${name}".`,
+				error: createResponse.error as Error,
 			});
 		}
 
@@ -183,28 +200,42 @@ export class Forgejo implements Forge {
 			this.repository.ownerUsername,
 			this.repository.name,
 			workflowName,
-			{ ref: branch, inputs },
+			{ ref: branch, inputs, return_run_info: true },
 		);
 
-		if (!response.ok) {
-			if (response.status === 404) {
-				return err({
-					type: "notFound",
-					message: `Workflow "${workflowName}" not found.`,
-					resource: workflowName,
-				});
-			}
+		if (response.ok) {
+			return ok(response.data.id as number);
+		}
 
+		if (response.status === 404) {
 			return err({
-				type: "generic",
-				status: response.status,
-				message: `Failed to dispatch workflow "${workflowName}".`,
-				error: response.error as Error,
+				type: "notFound",
+				message: `Workflow "${workflowName}" not found.`,
+				resource: workflowName,
 			});
 		}
 
-		const runIdentifier = response.data.id as number;
-		return ok(runIdentifier);
+		return err({
+			type: "generic",
+			status: response.status,
+			message: `Failed to dispatch workflow "${workflowName}".`,
+			error: response.error as Error,
+		});
+	}
+
+	private mapStatusToRunStatus(status: string): RunStatus {
+		const statusMap: Record<string, RunStatus> = {
+			unknown: RunStatus.Unknown,
+			waiting: RunStatus.Waiting,
+			running: RunStatus.Running,
+			success: RunStatus.Success,
+			failure: RunStatus.Failure,
+			cancelled: RunStatus.Cancelled,
+			skipped: RunStatus.Skipped,
+			blocked: RunStatus.Blocked,
+		};
+
+		return statusMap[status] ?? RunStatus.Unknown;
 	}
 
 	async getRunStatus(
@@ -234,28 +265,7 @@ export class Forgejo implements Forge {
 			});
 		}
 
-		const status = response.data.status;
-
-		switch (status) {
-			case "unknown":
-				return ok(RunStatus.Unknown);
-			case "waiting":
-				return ok(RunStatus.Waiting);
-			case "running":
-				return ok(RunStatus.Running);
-			case "success":
-				return ok(RunStatus.Success);
-			case "failure":
-				return ok(RunStatus.Failure);
-			case "cancelled":
-				return ok(RunStatus.Cancelled);
-			case "skipped":
-				return ok(RunStatus.Skipped);
-			case "blocked":
-				return ok(RunStatus.Blocked);
-			default:
-				return ok(RunStatus.Unknown);
-		}
+		return ok(this.mapStatusToRunStatus(response.data.status));
 	}
 
 	async getActiveRun(
@@ -274,7 +284,7 @@ export class Forgejo implements Forge {
 			secure: true,
 			format: "json",
 			query: {
-				status: "running,waiting",
+				status: ["wainting", "running"],
 			},
 		});
 
