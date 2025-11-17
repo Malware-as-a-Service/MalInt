@@ -5,8 +5,10 @@
 import { err, ok, type Result } from "neverthrow";
 import type {
 	DispatchWorkflowError,
+	DownloadArtifactError,
 	GetActiveRunError,
 	GetContentError,
+	GetRunByCommitError,
 	GetRunStatusError,
 	InvalidForgeKindError,
 	SetSecretError,
@@ -63,7 +65,7 @@ export interface Forge {
 		content: string,
 	): Promise<Result<string, WriteContentError>>;
 	dispatchWorkflow(
-		workflowName: string,
+		workflow: string,
 		branch: string,
 		inputs?: Record<string, string>,
 	): Promise<Result<number, DispatchWorkflowError>>;
@@ -71,7 +73,16 @@ export interface Forge {
 		runIdentifier: number,
 	): Promise<Result<RunStatus, GetRunStatusError>>;
 	getActiveRun(
-		workflowName: string,
+		workflow: string,
 		branch: string,
 	): Promise<Result<number | null, GetActiveRunError>>;
+	getRunByCommit(
+		workflow: string,
+		branch: string,
+		sha: string,
+	): Promise<Result<number | null, GetRunByCommitError>>;
+	downloadArtifact(
+		runIdentifier: number,
+		name: string,
+	): Promise<Result<Buffer, DownloadArtifactError>>;
 }
