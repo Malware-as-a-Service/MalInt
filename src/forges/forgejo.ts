@@ -192,14 +192,14 @@ export class Forgejo implements Forge {
 	}
 
 	async dispatchWorkflow(
-		workflowName: string,
+		workflow: string,
 		branch: string,
 		inputs?: Record<string, string>,
 	): Promise<Result<number, DispatchWorkflowError>> {
 		const response = await this.client.repos.dispatchWorkflow(
 			this.repository.ownerUsername,
 			this.repository.name,
-			workflowName,
+			workflow,
 			{ ref: branch, inputs, return_run_info: true },
 		);
 
@@ -210,15 +210,15 @@ export class Forgejo implements Forge {
 		if (response.status === 404) {
 			return err({
 				type: "notFound",
-				message: `Workflow "${workflowName}" not found.`,
-				resource: workflowName,
+				message: `Workflow "${workflow}" not found.`,
+				resource: workflow,
 			});
 		}
 
 		return err({
 			type: "generic",
 			status: response.status,
-			message: `Failed to dispatch workflow "${workflowName}".`,
+			message: `Failed to dispatch workflow "${workflow}".`,
 			error: response.error as Error,
 		});
 	}
@@ -269,7 +269,7 @@ export class Forgejo implements Forge {
 	}
 
 	async getActiveRun(
-		workflowName: string,
+		workflow: string,
 		branch: string,
 	): Promise<Result<number | null, GetActiveRunError>> {
 		const response = await this.client.request<{
@@ -298,7 +298,7 @@ export class Forgejo implements Forge {
 		}
 
 		const activeRun = response.data.workflow_runs?.find(
-			(run) => run.workflow_id === workflowName && run.prettyref === branch,
+			(run) => run.workflow_id === workflow && run.prettyref === branch,
 		);
 
 		return ok(activeRun?.id ?? null);
