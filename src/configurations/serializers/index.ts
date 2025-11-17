@@ -26,9 +26,9 @@ const validExtensions = Array.from(
 	new Set([...jsonExtensions, ...tomlExtensions]),
 );
 
-export function getDeserializer(
+export function getSerializer(
 	path: string,
-): Result<Deserializer, InvalidExtensionError> {
+): Result<Serializer, InvalidExtensionError> {
 	const extension = pathModule.extname(path).slice(1);
 
 	if (jsonExtensions.has(extension)) {
@@ -93,7 +93,7 @@ export function deserializeUiSchema(
 	});
 }
 
-export interface Deserializer {
+export interface Serializer {
 	deserializeRepository(
 		content: string,
 	): Result<z.infer<typeof RepositoryConfiguration>, DeserializeError>;
@@ -103,4 +103,5 @@ export interface Deserializer {
 	deserializeServerSideMalware(
 		content: string,
 	): Result<z.infer<typeof ServerSideMalwareConfiguration>, DeserializeError>;
+	serialize(data: object): string;
 }

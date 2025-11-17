@@ -2,30 +2,29 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import type { Deserializer } from ".";
+import type { Serializer } from ".";
 import {
 	RepositoryConfiguration,
 	ServerSideMalwareConfiguration,
 	ServerSideServerConfiguration,
 } from "../types";
 import type { DeserializeError, FailToParseError } from "../errors";
-import { Result, safeTry, ok, err } from "neverthrow";
-import { parse } from "smol-toml";
+import { Result, safeTry, err, ok } from "neverthrow";
 import type { z, ZodType } from "zod";
 
-export const extensions = new Set(["toml"]);
+export const extensions = new Set(["json"]);
 
-export class Toml implements Deserializer {
+export class Json implements Serializer {
 	deserialize<Type>(
 		schema: ZodType<Type>,
 		content: string,
 	): Result<Type, DeserializeError> {
 		return safeTry(function* () {
 			const parsedContent = yield* Result.fromThrowable(
-				parse,
+				JSON.parse,
 				(error): FailToParseError => ({
 					type: "failToParse",
-					message: `Failed to parse TOML: ${error instanceof Error ? error.message : String(error)}`,
+					message: `Failed to parse JSON: ${error instanceof Error ? error.message : String(error)}`,
 					error: error instanceof Error ? error : new Error(String(error)),
 				}),
 			)(content);
@@ -56,5 +55,9 @@ export class Toml implements Deserializer {
 		content: string,
 	): Result<z.infer<typeof ServerSideMalwareConfiguration>, DeserializeError> {
 		return this.deserialize(ServerSideMalwareConfiguration, content);
+	}
+
+	serialize(data: object): string {
+		return JSON.stringify(data);
 	}
 }
