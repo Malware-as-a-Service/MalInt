@@ -57,7 +57,7 @@ export interface Forge {
 		path: string,
 		message: string,
 		content: string,
-	): Promise<Result<string, WriteContentError>>;
+	): Promise<Result<void, WriteContentError>>;
 	dispatchWorkflow(
 		workflow: string,
 		branch: string,
