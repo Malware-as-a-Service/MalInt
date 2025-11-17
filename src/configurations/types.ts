@@ -10,55 +10,82 @@ const variableNameErrorMessage =
 
 export const RepositoryConfiguration = z.object({
 	forge: z.object({
-		buildingBranchVariableName: z
-			.string()
-			.regex(variableNameRegex, variableNameErrorMessage),
-		configurationPathVariableName: z
-			.string()
-			.regex(variableNameRegex, variableNameErrorMessage),
+		secrets: z.object({
+			registryUrl: z
+				.string()
+				.regex(variableNameRegex, variableNameErrorMessage),
+			registryUsername: z
+				.string()
+				.regex(variableNameRegex, variableNameErrorMessage),
+			registryPassword: z
+				.string()
+				.regex(variableNameRegex, variableNameErrorMessage),
+		}),
+		variables: z.object({
+			buildingBranch: z
+				.string()
+				.regex(variableNameRegex, variableNameErrorMessage),
+			configurationPath: z
+				.string()
+				.regex(variableNameRegex, variableNameErrorMessage),
+		}),
 	}),
 	server: z.object({
-		containerfilePath: z.string(),
+		workflow: z.string(),
+		containerfilePath: z.object({
+			name: z.string(),
+			value: z.string(),
+		}),
+		containerName: z.object({
+			name: z.string(),
+			value: z.string(),
+		}),
+		containerVersion: z.object({
+			name: z.string(),
+			value: z.string(),
+		}),
 	}),
 	malware: z.object({
 		configurationPath: z.string(),
+		workflow: z.string(),
 	}),
 	configurations: z.object({
 		serverSide: z.object({
-			serverPath: z.string().optional(),
-			malwarePath: z.string(),
+			server: z.string().optional(),
+			malware: z.string(),
 		}),
 		clientSide: z
 			.object({
-				serverPath: z.string().optional(),
-				serverUiPath: z.string().optional(),
-				malwarePath: z.string().optional(),
-				malwareUiPath: z.string().optional(),
+				server: z
+					.object({
+						schema: z.string(),
+						ui: z.string(),
+					})
+					.optional(),
+				malware: z
+					.object({
+						schema: z.string(),
+						ui: z.string(),
+					})
+					.optional(),
 			})
-			.refine(
-				(configuration) =>
-					(configuration.serverPath === undefined &&
-						configuration.serverUiPath === undefined) ||
-					(configuration.serverPath !== undefined &&
-						configuration.serverUiPath !== undefined),
-				{
-					message:
-						'The "serverPath" and "serverUiPath" fields must be present, or both undefined.',
-					path: ["serverPath", "serverUiPath"],
-				},
-			)
-			.refine(
-				(configuration) =>
-					(configuration.malwarePath === undefined &&
-						configuration.malwareUiPath === undefined) ||
-					(configuration.malwarePath !== undefined &&
-						configuration.malwareUiPath !== undefined),
-				{
-					message:
-						'The "malwarePath" and "malwareUiPath" fields must be present, or both undefined.',
-					path: ["malwarePath", "malwareUiPath"],
-				},
-			),
+			.optional(),
+		outputs: z
+			.object({
+				instance: z
+					.object({
+						schema: z.string(),
+						ui: z.string(),
+					})
+					.optional(),
+				victims: z
+					.object({
+						schema: z.string(),
+						ui: z.string(),
+					})
+					.optional(),
+			})
+			.optional(),
 	}),
 });
 
@@ -66,23 +93,36 @@ const functionRegex = /@(\w+)\(([^)]*)\)/;
 const functionErrorMessage =
 	"Function must match format: @functionName(firstParameter, secondParameter, ...)";
 
-export const ServerSideServerConfiguration = z.object().catchall(
-	z.object({
-		function: z.string().regex(functionRegex, functionErrorMessage),
-		type: z.enum(["secret", "plaintext"]),
-	}),
+const ServerSideServerConfigurationValueLeaf = z.object({
+	function: z.string().regex(functionRegex, functionErrorMessage),
+	type: z.enum(["secret", "plaintext"]),
+});
+
+export const ServerSideServerConfiguration: z.ZodType<{
+	[key: string]: unknown;
+}> = z.lazy(() =>
+	z
+		.object()
+		.catchall(
+			z.union([
+				ServerSideServerConfigurationValueLeaf,
+				ServerSideServerConfiguration,
+			]),
+		),
 );
 
-export const ServerSideMalwareConfiguration = z.object().catchall(
-	z.union([
-		z.object({
-			function: z.string().regex(functionRegex, functionErrorMessage),
-		}),
-		z.object({
-			from: z.string(),
-		}),
-	]),
-);
+const ServerSideMalwareConfigurationValueLeaf = z.union([
+	z.object({
+		function: z.string().regex(functionRegex, functionErrorMessage),
+	}),
+	z.object({
+		from: z.string(),
+	}),
+]);
+
+export const ServerSideMalwareConfiguration = z
+	.object()
+	.catchall(ServerSideMalwareConfigurationValueLeaf);
 
 // Needs to be done
 export const UiSchema = z.any();
