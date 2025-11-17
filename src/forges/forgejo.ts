@@ -284,7 +284,7 @@ export class Forgejo implements Forge {
 			secure: true,
 			format: "json",
 			query: {
-				status: ["wainting", "running"],
+				status: ["waiting", "running"],
 			},
 		});
 
