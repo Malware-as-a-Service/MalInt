@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { err, ok, type Result, safeTry } from "neverthrow";
+import { err, ok, type Result, ResultAsync, safeTry } from "neverthrow";
 import { type Api, type ContentsResponse, forgejoApi } from "forgejo-js";
 import { RunStatus, type Forge } from ".";
 import type { Repository } from "../repositories";
@@ -265,30 +265,61 @@ export class Forgejo implements Forge {
 		runIdentifier: number,
 		name: string,
 	): Promise<Result<Buffer, DownloadArtifactError>> {
-		const response = await this.client.request<ArrayBuffer>({
-			path: `/${this.repository.ownerUsername}/${this.repository.name}/actions/runs/${runIdentifier}/artifacts/${name}`,
-			method: "GET",
-			secure: true,
-			format: "blob",
-		});
+		const url = `${this.repository.baseAddress}/${this.repository.ownerUsername}/${this.repository.name}/actions/runs/${runIdentifier}/artifacts/${name}`;
+
+		const fetchResult = await ResultAsync.fromPromise(
+			fetch(url, {
+				headers: {
+					Authorization: `token ${this.repository.token}`,
+				},
+			}),
+			(error) =>
+				({
+					type: "generic",
+					status: 0,
+					message: `Failed to fetch artifact "${name}".`,
+					error: error as Error,
+				}) as const,
+		);
+
+		if (fetchResult.isErr()) {
+			return err(fetchResult.error);
+		}
+
+		const response = fetchResult.value;
 
 		if (!response.ok) {
 			if (response.status === 404) {
 				return err({
-					type: "notFound",
+					type: "notFound" as const,
 					message: `Artifact "${name}" not found for run "${runIdentifier}".`,
 					resource: name,
 				});
 			}
 
 			return err({
-				type: "generic",
+				type: "generic" as const,
 				status: response.status,
 				message: `Failed to download artifact "${name}".`,
-				error: response.error as Error,
+				error: new Error(`HTTP ${response.status}: ${response.statusText}`),
 			});
 		}
 
-		return ok(Buffer.from(response.data));
+		const arrayBufferResult = await ResultAsync.fromPromise(
+			response.arrayBuffer(),
+			(error) =>
+				({
+					type: "generic",
+					status: 0,
+					message: `Failed to read artifact "${name}" data.`,
+					error: error as Error,
+				}) as const,
+		);
+
+		if (arrayBufferResult.isErr()) {
+			return err(arrayBufferResult.error);
+		}
+
+		return ok(Buffer.from(arrayBufferResult.value));
 	}
 }
