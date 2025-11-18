@@ -2,12 +2,18 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {
+import type {
 	DeserializeError,
-	DeserializeJsonSchemaError,
 	InvalidExtensionError,
 } from "./configurations/errors";
-import { GetContentError, InvalidForgeKindError } from "./forges/errors";
+import type {
+	DispatchWorkflowError,
+	GetActiveRunError,
+	GetContentError,
+	InvalidForgeKindError,
+	SetSecretError,
+	WriteContentError,
+} from "./forges/errors";
 
 export type CreateMalIntError =
 	| InvalidForgeKindError
@@ -15,7 +21,14 @@ export type CreateMalIntError =
 	| GetContentError
 	| DeserializeError;
 
-export type GetClientSideConfigurations =
+export type BuildContainerError =
+	| SetSecretError
+	| DispatchWorkflowError
+	| GetActiveRunError;
+
+export type BuildMalwareError =
+	| InvalidExtensionError
+	| WriteContentError
+	| DispatchWorkflowError
 	| GetContentError
-	| DeserializeJsonSchemaError
 	| DeserializeError;

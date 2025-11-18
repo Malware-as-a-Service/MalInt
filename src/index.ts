@@ -2,23 +2,22 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { ok, Result, safeTry } from "neverthrow";
-import { Forge, ForgeKind, getForge } from "./forges";
-import { Repository } from "./repositories";
-import { RepositoryConfiguration } from "./configurations/types";
-import {
-	deserializeJsonSchema,
-	deserializeUiSchema,
-	getDeserializer,
-} from "./configurations/deserializers";
-import { z } from "zod";
-import { CreateMalIntError, GetClientSideConfigurations } from "./errors";
-import { ClientSideConfigurations } from "./types";
+import { ok, type Result, safeTry } from "neverthrow";
+import { type Forge, type ForgeKind, getForge } from "./forges";
+import type { Repository } from "./repositories";
+import type { RepositoryConfiguration } from "./configurations/types";
+import { getSerializer } from "./configurations/serializers";
+import type { z } from "zod";
+import type {
+	BuildContainerError,
+	BuildMalwareError,
+	CreateMalIntError,
+} from "./errors";
 
 export class MalInt {
 	forge: Forge;
-	repository: Repository;
-	repositoryConfiguration: z.infer<typeof RepositoryConfiguration>;
+	private repository: Repository;
+	private repositoryConfiguration: z.infer<typeof RepositoryConfiguration>;
 
 	private constructor(
 		forge: Forge,
@@ -36,8 +35,8 @@ export class MalInt {
 	): Promise<Result<MalInt, CreateMalIntError>> {
 		return safeTry(async function* () {
 			const forge = yield* getForge(repository, forgeKind);
-			const deserializer = yield* getDeserializer(repository.configurationPath);
-			const repositoryConfiguration = yield* deserializer.deserializeRepository(
+			const serializer = yield* getSerializer(repository.configurationPath);
+			const repositoryConfiguration = yield* serializer.deserializeRepository(
 				yield* await forge.getContent(repository.configurationPath),
 			);
 
@@ -45,45 +44,80 @@ export class MalInt {
 		});
 	}
 
-	async getClientSideConfigurations(): Promise<
-		Result<ClientSideConfigurations, GetClientSideConfigurations>
-	> {
+	async buildContainer(registryCredentials: {
+		url: string;
+		username: string;
+		password: string;
+	}): Promise<Result<number, BuildContainerError>> {
 		return safeTry(
 			async function* (this: MalInt) {
-				let configuration: ClientSideConfigurations = {};
+				const { secrets } = this.repositoryConfiguration.forge;
+				const { workflow, containerfilePath, containerName, containerVersion } =
+					this.repositoryConfiguration.server;
 
-				const { serverPath, serverUiPath, malwarePath, malwareUiPath } =
-					this.repositoryConfiguration.configurations.clientSide;
+				const activeRunId = yield* await this.forge.getActiveRun(
+					workflow,
+					this.repository.buildingBranch,
+				);
 
-				if (serverPath) {
-					const schema = yield* deserializeJsonSchema(
-						yield* await this.forge.getContent(serverPath),
-					);
-					const uiSchema = yield* deserializeUiSchema(
-						yield* await this.forge.getContent(serverUiPath as string),
-					);
-
-					configuration.server = {
-						schema,
-						uiSchema,
-					};
+				if (activeRunId !== null) {
+					return ok(activeRunId);
 				}
 
-				if (malwarePath) {
-					const schema = yield* deserializeJsonSchema(
-						yield* await this.forge.getContent(malwarePath),
-					);
-					const uiSchema = yield* deserializeUiSchema(
-						yield* await this.forge.getContent(malwareUiPath as string),
-					);
+				yield* await this.forge.setSecret(
+					secrets.registryUrl,
+					registryCredentials.url,
+				);
+				yield* await this.forge.setSecret(
+					secrets.registryUsername,
+					registryCredentials.username,
+				);
+				yield* await this.forge.setSecret(
+					secrets.registryPassword,
+					registryCredentials.password,
+				);
 
-					configuration.malware = {
-						schema,
-						uiSchema,
-					};
-				}
+				const runIdentifier = yield* await this.forge.dispatchWorkflow(
+					workflow,
+					this.repository.buildingBranch,
+					{
+						[containerfilePath.name]: containerfilePath.value,
+						[containerName.name]: containerName.value,
+						[containerVersion.name]: containerVersion.value,
+					},
+				);
 
-				return ok(configuration);
+				return ok(runIdentifier);
+			}.bind(this),
+		);
+	}
+
+	async buildMalware(
+		configuration: object,
+	): Promise<Result<number, BuildMalwareError>> {
+		return safeTry(
+			async function* (this: MalInt) {
+				const { configurationPath, workflow, artifactName } =
+					this.repositoryConfiguration.malware;
+
+				const serializer = yield* getSerializer(configurationPath);
+				const serializedContent = serializer.serialize(configuration);
+
+				yield* await this.forge.writeContent(
+					configurationPath,
+					"Update malware configuration",
+					serializedContent,
+				);
+
+				const runIdentifier = yield* await this.forge.dispatchWorkflow(
+					workflow,
+					this.repository.buildingBranch,
+					{
+						[artifactName.name]: artifactName.value,
+					},
+				);
+
+				return ok(runIdentifier);
 			}.bind(this),
 		);
 	}
