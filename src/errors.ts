@@ -8,27 +8,40 @@ import type {
 } from "./configurations/errors";
 import type {
 	DispatchWorkflowError,
+	DownloadArtifactError,
 	GetActiveRunError,
 	GetContentError,
+	GetRunStatusError,
 	InvalidForgeKindError,
 	SetSecretError,
 	WriteContentError,
 } from "./forges/errors";
+import type { RunStatus } from "./forges";
 
 export type CreateMalIntError =
 	| InvalidForgeKindError
 	| InvalidExtensionError
 	| GetContentError
 	| DeserializeError;
-
 export type BuildContainerError =
 	| SetSecretError
 	| DispatchWorkflowError
 	| GetActiveRunError;
-
 export type BuildMalwareError =
 	| InvalidExtensionError
 	| WriteContentError
 	| DispatchWorkflowError
 	| GetContentError
 	| DeserializeError;
+export type WaitForContainerError = GetRunStatusError | BuildFailedError;
+export type WaitForMalwareError =
+	| GetRunStatusError
+	| DownloadArtifactError
+	| BuildFailedError;
+
+export interface BuildFailedError {
+	type: "buildFailed";
+	message: string;
+	runIdentifier: number;
+	status: RunStatus;
+}

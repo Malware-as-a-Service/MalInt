@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { ok, type Result, safeTry } from "neverthrow";
-import { type Forge, type ForgeKind, getForge } from "./forges";
+import { err, ok, type Result, safeTry } from "neverthrow";
+import { type Forge, type ForgeKind, getForge, RunStatus } from "./forges";
 import type { Repository } from "./repositories";
 import type { RepositoryConfiguration } from "./configurations/types";
 import { getSerializer } from "./configurations/serializers";
@@ -12,6 +12,8 @@ import type {
 	BuildContainerError,
 	BuildMalwareError,
 	CreateMalIntError,
+	WaitForContainerError,
+	WaitForMalwareError,
 } from "./errors";
 
 export class MalInt {
@@ -118,6 +120,76 @@ export class MalInt {
 				);
 
 				return ok(runIdentifier);
+			}.bind(this),
+		);
+	}
+
+	async waitForContainer(
+		runIdentifier: number,
+		pollInterval = 5000,
+	): Promise<Result<void, WaitForContainerError>> {
+		return safeTry(
+			async function* (this: MalInt) {
+				while (true) {
+					const status = yield* await this.forge.getRunStatus(runIdentifier);
+
+					if (status === RunStatus.Success) {
+						return ok(undefined);
+					}
+
+					if (
+						status === RunStatus.Failure ||
+						status === RunStatus.Cancelled ||
+						status === RunStatus.Skipped
+					) {
+						return err({
+							type: "buildFailed" as const,
+							message: `Container build failed with status "${status}".`,
+							runIdentifier,
+							status,
+						});
+					}
+
+					await new Promise((resolve) => setTimeout(resolve, pollInterval));
+				}
+			}.bind(this),
+		);
+	}
+
+	async waitForMalware(
+		runIdentifier: number,
+		pollInterval = 5000,
+	): Promise<Result<Buffer, WaitForMalwareError>> {
+		return safeTry(
+			async function* (this: MalInt) {
+				while (true) {
+					const status = yield* await this.forge.getRunStatus(runIdentifier);
+
+					if (status === RunStatus.Success) {
+						const { artifactName } = this.repositoryConfiguration.malware;
+						const artifact = yield* await this.forge.downloadArtifact(
+							runIdentifier,
+							artifactName.value,
+						);
+
+						return ok(artifact);
+					}
+
+					if (
+						status === RunStatus.Failure ||
+						status === RunStatus.Cancelled ||
+						status === RunStatus.Skipped
+					) {
+						return err({
+							type: "buildFailed" as const,
+							message: `Malware build failed with status "${status}".`,
+							runIdentifier,
+							status,
+						});
+					}
+
+					await new Promise((resolve) => setTimeout(resolve, pollInterval));
+				}
 			}.bind(this),
 		);
 	}
