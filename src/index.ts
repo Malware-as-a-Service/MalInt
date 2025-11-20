@@ -263,7 +263,9 @@ export class MalInt {
 				const configurations: Configurations["clientSide"] = {};
 
 				if (clientSide.server) {
-					const schemaSerializer = yield* getSerializer(clientSide.server.schema);
+					const schemaSerializer = yield* getSerializer(
+						clientSide.server.schema,
+					);
 					const schemaContent = yield* await this.forge.getContent(
 						clientSide.server.schema,
 					);

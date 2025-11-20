@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { ErrorObject } from "ajv";
+import type { ErrorObject } from "ajv";
 import type { ZodError } from "zod";
 
 export type DeserializeError = FailToParseError | ZodError;

@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { Function } from "../registry";
 import { z } from "zod";
+import { Function } from "../registry";
 
 export class Generators {
 	@Function("randomPort")

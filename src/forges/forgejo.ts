@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { err, ok, type Result, ResultAsync, safeTry } from "neverthrow";
 import { type Api, type ContentsResponse, forgejoApi } from "forgejo-js";
-import { RunStatus, type Forge } from ".";
+import { err, ok, type Result, ResultAsync, safeTry } from "neverthrow";
 import type { Repository } from "../repositories";
+import { type Forge, RunStatus } from ".";
 import type {
 	DispatchWorkflowError,
 	DownloadArtifactError,

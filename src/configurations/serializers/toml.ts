@@ -2,16 +2,11 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import type { Serializer } from ".";
-import {
-	RepositoryConfiguration,
-	ServerSideMalwareConfiguration,
-	ServerSideServerConfiguration,
-} from "../types";
-import type { DeserializeError, FailToParseError } from "../errors";
-import { Result, safeTry, ok, err } from "neverthrow";
+import { err, ok, Result, safeTry } from "neverthrow";
 import { parse, stringify } from "smol-toml";
-import type { z, ZodType } from "zod";
+import type { ZodType } from "zod";
+import type { DeserializeError, FailToParseError } from "../errors";
+import type { Serializer } from ".";
 
 export const extensions = new Set(["toml"]);
 

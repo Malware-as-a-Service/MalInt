@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { err, ok, type Result } from "neverthrow";
+import type { Repository } from "../repositories";
 import type {
 	DispatchWorkflowError,
 	DownloadArtifactError,
@@ -14,7 +15,6 @@ import type {
 	WriteContentError,
 } from "./errors";
 import { Forgejo } from "./forgejo";
-import type { Repository } from "../repositories";
 
 export enum ForgeKind {
 	Forgejo = "forgejo",

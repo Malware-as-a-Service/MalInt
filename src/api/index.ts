@@ -2,18 +2,18 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { err, ok, Result } from "neverthrow";
-import { Handler, registry } from "./registry";
-import { InvokeError } from "./errors";
+import { err, ok, type Result } from "neverthrow";
+import { type ZodError, z } from "zod";
+import type { InvokeError } from "./errors";
 import { Networking } from "./handlers/networking";
-import { z, ZodError } from "zod";
+import { type Handler, registry } from "./registry";
 // Necessary if we want the registry to be populated
 import "./handlers/generators";
 import "./handlers/networking";
 
 export class Api {
 	constructor() {
-		let handler = registry.get("serverHostname") as Handler;
+		const handler = registry.get("serverHostname") as Handler;
 
 		registry.set("serverHostname", {
 			parametersSchema: z.tuple([]),
@@ -25,7 +25,7 @@ export class Api {
 		functionName: string,
 		...args: string[]
 	): Result<unknown, InvokeError> {
-		let handler = registry.get(functionName);
+		const handler = registry.get(functionName);
 
 		if (handler === undefined) {
 			return err({
@@ -51,7 +51,7 @@ export class Api {
 			return err(error);
 		}
 
-		let handler = registry.get("serverHostname") as Handler;
+		const handler = registry.get("serverHostname") as Handler;
 
 		registry.set("serverHostname", {
 			...handler,

@@ -6,6 +6,7 @@ import type {
 	DeserializeError,
 	InvalidExtensionError,
 } from "./configurations/errors";
+import type { RunStatus } from "./forges";
 import type {
 	DispatchWorkflowError,
 	DownloadArtifactError,
@@ -16,7 +17,6 @@ import type {
 	SetSecretError,
 	WriteContentError,
 } from "./forges/errors";
-import type { RunStatus } from "./forges";
 
 export type CreateMalIntError =
 	| InvalidForgeKindError

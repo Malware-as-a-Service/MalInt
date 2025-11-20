@@ -2,25 +2,20 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { err, ok, safeTry, Result } from "neverthrow";
-import {
-	UiSchema,
-	type RepositoryConfiguration,
-	type ServerSideMalwareConfiguration,
-	type ServerSideServerConfiguration,
-} from "../types";
+import pathModule from "node:path";
+import type { JSONSchemaType } from "ajv";
+import Ajv from "ajv/dist/2020";
+import { err, ok, Result, safeTry } from "neverthrow";
+import type { z } from "zod";
 import type {
 	DeserializeError,
 	DeserializeJsonSchemaError,
 	FailToParseError,
 	InvalidExtensionError,
 } from "../errors";
-import { Toml, extensions as tomlExtensions } from "./toml";
+import { UiSchema } from "../types";
 import { Json, extensions as jsonExtensions } from "./json";
-import type { z } from "zod";
-import { JSONSchemaType } from "ajv";
-import Ajv from "ajv/dist/2020";
-import pathModule from "node:path";
+import { Toml, extensions as tomlExtensions } from "./toml";
 
 const validExtensions = Array.from(
 	new Set([...jsonExtensions, ...tomlExtensions]),
@@ -94,6 +89,9 @@ export function deserializeUiSchema(
 }
 
 export interface Serializer {
-	deserialize<T>(schema: z.ZodType<T>, content: string): Result<T, DeserializeError>;
+	deserialize<T>(
+		schema: z.ZodType<T>,
+		content: string,
+	): Result<T, DeserializeError>;
 	serialize(data: object): string;
 }

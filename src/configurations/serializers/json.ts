@@ -2,15 +2,10 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import type { Serializer } from ".";
-import {
-	RepositoryConfiguration,
-	ServerSideMalwareConfiguration,
-	ServerSideServerConfiguration,
-} from "../types";
+import { err, ok, Result, safeTry } from "neverthrow";
+import type { ZodType } from "zod";
 import type { DeserializeError, FailToParseError } from "../errors";
-import { Result, safeTry, err, ok } from "neverthrow";
-import type { z, ZodType } from "zod";
+import type { Serializer } from ".";
 
 export const extensions = new Set(["json"]);
 
