@@ -13,10 +13,10 @@ export const registry = new Map<string, HandlerDefinition>();
 
 export function Handler(name: string) {
 	return (target: object, propertyKey: string) => {
-		const handler = (target as Record<string, HandlerDefinition>)[propertyKey];
+		const handler = (target as Record<string, unknown>)[propertyKey];
 		registry.set(name, {
-			parametersSchema: handler.parametersSchema,
-			function: handler.function,
+			parametersSchema: (handler as HandlerDefinition).parametersSchema,
+			function: handler as (...args: unknown[]) => unknown,
 		});
 	};
 }

@@ -6,19 +6,21 @@ import { err, ok, type Result } from "neverthrow";
 import { type ZodError, z } from "zod";
 import type { InvokeError } from "./errors";
 import { Networking } from "./handlers/networking";
-import { type Handler, registry } from "./registry";
+import { HandlerDefinition, registry } from "./registry";
 // Necessary if we want the registry to be populated
 import "./handlers/generators";
 import "./handlers/networking";
 
 export class Api {
 	constructor() {
-		const handler = registry.get("serverHostname") as Handler;
+		const handler = registry.get("serverHostname");
 
-		registry.set("serverHostname", {
-			parametersSchema: z.tuple([]),
-			function: handler.function.bind(null, "localhost"),
-		});
+		if (handler) {
+			registry.set("serverHostname", {
+				parametersSchema: z.tuple([]),
+				function: handler.function.bind(null, "localhost"),
+			});
+		}
 	}
 
 	invoke(
@@ -51,7 +53,7 @@ export class Api {
 			return err(error);
 		}
 
-		const handler = registry.get("serverHostname") as Handler;
+		const handler = registry.get("serverHostname") as HandlerDefinition;
 
 		registry.set("serverHostname", {
 			...handler,
