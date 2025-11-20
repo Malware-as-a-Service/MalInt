@@ -116,9 +116,18 @@ const ServerSideMalwareConfigurationValueLeaf = z.union([
 	}),
 ]);
 
-export const ServerSideMalwareConfiguration = z
-	.object()
-	.catchall(ServerSideMalwareConfigurationValueLeaf);
+export const ServerSideMalwareConfiguration: z.ZodType<{
+	[key: string]: unknown;
+}> = z.lazy(() =>
+	z
+		.object()
+		.catchall(
+			z.union([
+				ServerSideMalwareConfigurationValueLeaf,
+				ServerSideMalwareConfiguration,
+			]),
+		),
+);
 
 // Needs to be done
 export const UiSchema = z.any();
