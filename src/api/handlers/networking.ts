@@ -3,10 +3,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { z } from "zod";
-import { Function } from "../registry";
+import { Handler } from "../registry";
 
+// biome-ignore lint/complexity/noStaticOnlyClass: Class is used as a container for decorated handler methods
 export class Networking {
-	@Function("serverHostname")
+	@Handler("serverHostname")
 	static serverHostname = Object.assign(
 		(hostname: string) => {
 			return hostname;

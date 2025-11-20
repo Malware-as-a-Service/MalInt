@@ -4,18 +4,19 @@
 
 import type { z } from "zod";
 
-export interface Handler {
+export interface HandlerDefinition {
 	parametersSchema: z.ZodTuple;
 	function: (...args: z.infer<z.ZodTuple>) => unknown;
 }
 
-export const registry = new Map<string, Handler>();
+export const registry = new Map<string, HandlerDefinition>();
 
-export function Function(name: string) {
-	return (target: any, propertyKey: string | symbol) => {
+export function Handler(name: string) {
+	return (target: object, propertyKey: string) => {
+		const handler = (target as Record<string, HandlerDefinition>)[propertyKey];
 		registry.set(name, {
-			parametersSchema: target[propertyKey].parametersSchema,
-			function: target[propertyKey],
+			parametersSchema: handler.parametersSchema,
+			function: handler.function,
 		});
 	};
 }

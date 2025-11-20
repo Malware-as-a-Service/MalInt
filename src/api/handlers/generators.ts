@@ -3,10 +3,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { z } from "zod";
-import { Function } from "../registry";
+import { Handler } from "../registry";
 
+// biome-ignore lint/complexity/noStaticOnlyClass: Class is used as a container for decorated handler methods
 export class Generators {
-	@Function("randomPort")
+	@Handler("randomPort")
 	static randomPort = Object.assign(
 		(minimumPort: number, maximumPort: number) => {
 			return (
@@ -37,7 +38,7 @@ export class Generators {
 		},
 	);
 
-	@Function("randomPathPrefix")
+	@Handler("randomPathPrefix")
 	static randomPathPrefix = Object.assign(
 		(minimumLength: number, maximumLength: number) => {
 			const characters =
