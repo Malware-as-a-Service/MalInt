@@ -131,3 +131,4 @@ export const ServerSideMalwareConfiguration: z.ZodType<{
 
 // Needs to be done
 export const UiSchema = z.any();
+export const JsonObject = z.object({}).catchall(z.any());

@@ -38,6 +38,10 @@ export type WaitForMalwareError =
 	| GetRunStatusError
 	| DownloadArtifactError
 	| BuildFailedError;
+export type GetConfigurationsError =
+	| GetContentError
+	| DeserializeError
+	| InvalidExtensionError;
 
 export interface BuildFailedError {
 	type: "buildFailed";

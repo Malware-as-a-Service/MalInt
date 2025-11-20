@@ -94,14 +94,6 @@ export function deserializeUiSchema(
 }
 
 export interface Serializer {
-	deserializeRepository(
-		content: string,
-	): Result<z.infer<typeof RepositoryConfiguration>, DeserializeError>;
-	deserializeServerSideServer(
-		content: string,
-	): Result<z.infer<typeof ServerSideServerConfiguration>, DeserializeError>;
-	deserializeServerSideMalware(
-		content: string,
-	): Result<z.infer<typeof ServerSideMalwareConfiguration>, DeserializeError>;
+	deserialize<T>(schema: z.ZodType<T>, content: string): Result<T, DeserializeError>;
 	serialize(data: object): string;
 }

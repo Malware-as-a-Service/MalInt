@@ -40,24 +40,6 @@ export class Toml implements Serializer {
 		});
 	}
 
-	deserializeRepository(
-		content: string,
-	): Result<z.infer<typeof RepositoryConfiguration>, DeserializeError> {
-		return this.deserialize(RepositoryConfiguration, content);
-	}
-
-	deserializeServerSideServer(
-		content: string,
-	): Result<z.infer<typeof ServerSideServerConfiguration>, DeserializeError> {
-		return this.deserialize(ServerSideServerConfiguration, content);
-	}
-
-	deserializeServerSideMalware(
-		content: string,
-	): Result<z.infer<typeof ServerSideMalwareConfiguration>, DeserializeError> {
-		return this.deserialize(ServerSideMalwareConfiguration, content);
-	}
-
 	serialize(data: object): string {
 		return stringify(data);
 	}

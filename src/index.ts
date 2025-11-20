@@ -3,23 +3,31 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { err, ok, type Result, safeTry } from "neverthrow";
-import { type Forge, type ForgeKind, getForge, RunStatus } from "./forges";
-import type { Repository } from "./repositories";
-import type { RepositoryConfiguration } from "./configurations/types";
-import { getSerializer } from "./configurations/serializers";
 import type { z } from "zod";
+import { getSerializer } from "./configurations/serializers";
+import {
+	JsonObject,
+	RepositoryConfiguration,
+	ServerSideMalwareConfiguration,
+	ServerSideServerConfiguration,
+} from "./configurations/types";
 import type {
 	BuildContainerError,
 	BuildMalwareError,
 	CreateMalIntError,
+	GetConfigurationsError,
 	WaitForContainerError,
 	WaitForMalwareError,
 } from "./errors";
+import { type Forge, type ForgeKind, getForge, RunStatus } from "./forges";
+import type { Repository } from "./repositories";
+import type { Configurations } from "./types";
 
 export class MalInt {
 	forge: Forge;
 	private repository: Repository;
 	private repositoryConfiguration: z.infer<typeof RepositoryConfiguration>;
+	private configurations: Configurations;
 
 	private constructor(
 		forge: Forge,
@@ -29,6 +37,7 @@ export class MalInt {
 		this.forge = forge;
 		this.repository = repository;
 		this.repositoryConfiguration = repositoryConfiguration;
+		this.configurations = {};
 	}
 
 	static async createMalInt(
@@ -38,7 +47,8 @@ export class MalInt {
 		return safeTry(async function* () {
 			const forge = yield* getForge(repository, forgeKind);
 			const serializer = yield* getSerializer(repository.configurationPath);
-			const repositoryConfiguration = yield* serializer.deserializeRepository(
+			const repositoryConfiguration = yield* serializer.deserialize(
+				RepositoryConfiguration,
 				yield* await forge.getContent(repository.configurationPath),
 			);
 
@@ -190,6 +200,175 @@ export class MalInt {
 
 					await new Promise((resolve) => setTimeout(resolve, pollInterval));
 				}
+			}.bind(this),
+		);
+	}
+
+	async getServerSideConfigurations(): Promise<
+		Result<Configurations["serverSide"], GetConfigurationsError>
+	> {
+		if (this.configurations.serverSide) {
+			return ok(this.configurations.serverSide);
+		}
+
+		return safeTry(
+			async function* (this: MalInt) {
+				const { serverSide } = this.repositoryConfiguration.configurations;
+
+				const malwareSerializer = yield* getSerializer(serverSide.malware);
+				const malwareContent = yield* await this.forge.getContent(
+					serverSide.malware,
+				);
+				const malware = yield* malwareSerializer.deserialize(
+					ServerSideMalwareConfiguration,
+					malwareContent,
+				);
+
+				let server: object | undefined;
+
+				if (serverSide.server) {
+					const serverSerializer = yield* getSerializer(serverSide.server);
+					const serverContent = yield* await this.forge.getContent(
+						serverSide.server,
+					);
+					server = yield* serverSerializer.deserialize(
+						ServerSideServerConfiguration,
+						serverContent,
+					);
+				}
+
+				const configurations = { malware, server };
+				this.configurations.serverSide = configurations;
+
+				return ok(configurations);
+			}.bind(this),
+		);
+	}
+
+	async getClientSideConfigurations(): Promise<
+		Result<Configurations["clientSide"], GetConfigurationsError>
+	> {
+		if (this.configurations.clientSide) {
+			return ok(this.configurations.clientSide);
+		}
+
+		return safeTry(
+			async function* (this: MalInt) {
+				const { clientSide } = this.repositoryConfiguration.configurations;
+
+				if (!clientSide) {
+					return ok(undefined);
+				}
+
+				const configurations: Configurations["clientSide"] = {};
+
+				if (clientSide.server) {
+					const schemaSerializer = yield* getSerializer(clientSide.server.schema);
+					const schemaContent = yield* await this.forge.getContent(
+						clientSide.server.schema,
+					);
+					const schema = yield* schemaSerializer.deserialize(
+						JsonObject,
+						schemaContent,
+					);
+
+					const uiSerializer = yield* getSerializer(clientSide.server.ui);
+					const uiContent = yield* await this.forge.getContent(
+						clientSide.server.ui,
+					);
+					const ui = yield* uiSerializer.deserialize(JsonObject, uiContent);
+
+					configurations.server = { schema, ui };
+				}
+
+				if (clientSide.malware) {
+					const schemaSerializer = yield* getSerializer(
+						clientSide.malware.schema,
+					);
+					const schemaContent = yield* await this.forge.getContent(
+						clientSide.malware.schema,
+					);
+					const schema = yield* schemaSerializer.deserialize(
+						JsonObject,
+						schemaContent,
+					);
+
+					const uiSerializer = yield* getSerializer(clientSide.malware.ui);
+					const uiContent = yield* await this.forge.getContent(
+						clientSide.malware.ui,
+					);
+					const ui = yield* uiSerializer.deserialize(JsonObject, uiContent);
+
+					configurations.malware = { schema, ui };
+				}
+
+				this.configurations.clientSide = configurations;
+
+				return ok(configurations);
+			}.bind(this),
+		);
+	}
+
+	async getOutputConfigurations(): Promise<
+		Result<Configurations["outputs"], GetConfigurationsError>
+	> {
+		if (this.configurations.outputs) {
+			return ok(this.configurations.outputs);
+		}
+
+		return safeTry(
+			async function* (this: MalInt) {
+				const { outputs } = this.repositoryConfiguration.configurations;
+
+				if (!outputs) {
+					return ok(undefined);
+				}
+
+				const configurations: Configurations["outputs"] = {};
+
+				if (outputs.instance) {
+					const schemaSerializer = yield* getSerializer(
+						outputs.instance.schema,
+					);
+					const schemaContent = yield* await this.forge.getContent(
+						outputs.instance.schema,
+					);
+					const schema = yield* schemaSerializer.deserialize(
+						JsonObject,
+						schemaContent,
+					);
+
+					const uiSerializer = yield* getSerializer(outputs.instance.ui);
+					const uiContent = yield* await this.forge.getContent(
+						outputs.instance.ui,
+					);
+					const ui = yield* uiSerializer.deserialize(JsonObject, uiContent);
+
+					configurations.instance = { schema, ui };
+				}
+
+				if (outputs.victims) {
+					const schemaSerializer = yield* getSerializer(outputs.victims.schema);
+					const schemaContent = yield* await this.forge.getContent(
+						outputs.victims.schema,
+					);
+					const schema = yield* schemaSerializer.deserialize(
+						JsonObject,
+						schemaContent,
+					);
+
+					const uiSerializer = yield* getSerializer(outputs.victims.ui);
+					const uiContent = yield* await this.forge.getContent(
+						outputs.victims.ui,
+					);
+					const ui = yield* uiSerializer.deserialize(JsonObject, uiContent);
+
+					configurations.victims = { schema, ui };
+				}
+
+				this.configurations.outputs = configurations;
+
+				return ok(configurations);
 			}.bind(this),
 		);
 	}
