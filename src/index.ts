@@ -4,6 +4,8 @@
 
 import { err, ok, type Result, safeTry } from "neverthrow";
 import type { z } from "zod";
+import { Api } from "./api";
+import type { InvokeError } from "./api/errors";
 import { getSerializer } from "./configurations/serializers";
 import {
 	JsonObject,
@@ -28,6 +30,8 @@ export class MalInt {
 	private repository: Repository;
 	private repositoryConfiguration: z.infer<typeof RepositoryConfiguration>;
 	private configurations: Configurations;
+	private api: Api;
+	private generatedServerConfiguration?: object;
 
 	private constructor(
 		forge: Forge,
@@ -38,6 +42,7 @@ export class MalInt {
 		this.repository = repository;
 		this.repositoryConfiguration = repositoryConfiguration;
 		this.configurations = {};
+		this.api = new Api();
 	}
 
 	static async createMalInt(
@@ -373,5 +378,18 @@ export class MalInt {
 				return ok(configurations);
 			}.bind(this),
 		);
+	}
+
+	private executeFunction(
+		functionString: string,
+	): Result<unknown, InvokeError> {
+		const [, functionName, argumentsString] = functionString.match(
+			functionRegex,
+		) as RegExpMatchArray;
+		const arguments_ = argumentsString
+			? argumentsString.split(",").map((argument) => argument.trim())
+			: [];
+
+		return this.api.invoke(functionName, ...arguments_);
 	}
 }
