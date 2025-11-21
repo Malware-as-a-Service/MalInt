@@ -27,14 +27,10 @@ export class Generators {
 						.gte(1, "Maximum port must be between and 65535.")
 						.lte(65535, "Minimum port must be between 1 and 65535."),
 				])
-				.refine(([minimumPort, maximumPort]) => {
-					if (maximumPort < minimumPort) {
-						return {
-							message:
-								"Maximum port must be greater or equal to the minimum port.",
-						};
-					}
-				}),
+				.refine(
+					([minimumPort, maximumPort]) => maximumPort >= minimumPort,
+					"Maximum port must be greater or equal to the minimum port.",
+				),
 		},
 	);
 
@@ -67,14 +63,10 @@ export class Generators {
 						.number()
 						.nonnegative("Maximum path length should be greater than 0."),
 				])
-				.refine(([minimumLength, maximumLength]) => {
-					if (maximumLength < minimumLength) {
-						return {
-							message:
-								"Maximum path length must be greater or equal to the minimum path length.",
-						};
-					}
-				}),
+				.refine(
+					([minimumLength, maximumLength]) => maximumLength >= minimumLength,
+					"Maximum path length must be greater or equal to the minimum path length.",
+				),
 		},
 	);
 }

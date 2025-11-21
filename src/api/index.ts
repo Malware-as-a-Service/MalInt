@@ -6,7 +6,7 @@ import { err, ok, type Result } from "neverthrow";
 import { type ZodError, z } from "zod";
 import type { InvokeError } from "./errors";
 import { Networking } from "./handlers/networking";
-import { HandlerDefinition, registry } from "./registry";
+import { type HandlerDefinition, registry } from "./registry";
 // Necessary if we want the registry to be populated
 import "./handlers/generators";
 import "./handlers/networking";
