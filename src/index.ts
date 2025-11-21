@@ -381,6 +381,10 @@ export class MalInt {
 		);
 	}
 
+	setServerHostname(hostname: string): Result<void, z.ZodError> {
+		return this.api.setServerHostname(hostname);
+	}
+
 	private resolveVariable(
 		variablePath: string,
 	): Result<unknown, VariableNotFoundError> {
