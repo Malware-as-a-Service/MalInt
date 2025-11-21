@@ -85,11 +85,19 @@ export const RepositoryConfiguration = z.object({
 	}),
 });
 
-const functionRegex = /@(\w+)\(([^)]*)\)/;
+export const functionRegex = /@(\w+)\(([^)]*)\)/;
 const functionErrorMessage =
 	"Function must match format: @functionName(firstParameter, secondParameter, ...)";
 
-const ServerSideServerConfigurationValueLeaf = z.object({
+export const FunctionLeaf = z.object({
+	function: z.string().regex(functionRegex, functionErrorMessage),
+});
+
+export const VariableLeaf = z.object({
+	from: z.string(),
+});
+
+export const ServerLeaf = z.object({
 	function: z.string().regex(functionRegex, functionErrorMessage),
 	type: z.enum(["secret", "plaintext"]),
 });
@@ -97,23 +105,12 @@ const ServerSideServerConfigurationValueLeaf = z.object({
 export const ServerSideServerConfiguration: z.ZodType<{
 	[key: string]: unknown;
 }> = z.lazy(() =>
-	z
-		.object()
-		.catchall(
-			z.union([
-				ServerSideServerConfigurationValueLeaf,
-				ServerSideServerConfiguration,
-			]),
-		),
+	z.object().catchall(z.union([ServerLeaf, ServerSideServerConfiguration])),
 );
 
 const ServerSideMalwareConfigurationValueLeaf = z.union([
-	z.object({
-		function: z.string().regex(functionRegex, functionErrorMessage),
-	}),
-	z.object({
-		from: z.string(),
-	}),
+	FunctionLeaf,
+	VariableLeaf,
 ]);
 
 export const ServerSideMalwareConfiguration: z.ZodType<{

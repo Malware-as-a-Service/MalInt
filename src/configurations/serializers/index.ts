@@ -3,12 +3,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import pathModule from "node:path";
-import { err, ok, Result } from "neverthrow";
+import { err, ok, type Result } from "neverthrow";
 import type { z } from "zod";
-import type {
-	DeserializeError,
-	InvalidExtensionError,
-} from "../errors";
+import type { DeserializeError, InvalidExtensionError } from "../errors";
 import { Json, extensions as jsonExtensions } from "./json";
 import { Toml, extensions as tomlExtensions } from "./toml";
 
