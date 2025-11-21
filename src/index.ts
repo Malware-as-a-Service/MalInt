@@ -18,6 +18,7 @@ import type {
 	BuildMalwareError,
 	CreateMalIntError,
 	GetConfigurationsError,
+	VariableNotFoundError,
 	WaitForContainerError,
 	WaitForMalwareError,
 } from "./errors";
@@ -378,6 +379,43 @@ export class MalInt {
 				return ok(configurations);
 			}.bind(this),
 		);
+	}
+
+	private resolveVariable(
+		variablePath: string,
+	): Result<unknown, VariableNotFoundError> {
+		if (!this.generatedServerConfiguration) {
+			return err({
+				type: "variableNotFound",
+				message: "Server configuration not generated yet",
+				path: variablePath,
+			});
+		}
+
+		const pathParts = variablePath.split(".");
+		let value: unknown = this.generatedServerConfiguration;
+
+		for (const part of pathParts) {
+			if (!value || typeof value !== "object") {
+				return err({
+					type: "variableNotFound",
+					message: `Variable "${variablePath}" not found`,
+					path: variablePath,
+				});
+			}
+
+			value = (value as Record<string, unknown>)[part];
+		}
+
+		if (value === undefined) {
+			return err({
+				type: "variableNotFound",
+				message: `Variable "${variablePath}" not found`,
+				path: variablePath,
+			});
+		}
+
+		return ok(value);
 	}
 
 	private executeFunction(
