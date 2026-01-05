@@ -276,45 +276,17 @@ export class MalInt {
 				const configurations: Configurations["clientSide"] = {};
 
 				if (clientSide.server) {
-					const schemaSerializer = yield* getSerializer(
-						clientSide.server.schema,
+					const serverConfigurations = yield* await this.getSchemaUiPair(
+						clientSide.server,
 					);
-					const schemaContent = yield* await this.forge.getContent(
-						clientSide.server.schema,
-					);
-					const schema = yield* schemaSerializer.deserialize(
-						JsonObject,
-						schemaContent,
-					);
-
-					const uiSerializer = yield* getSerializer(clientSide.server.ui);
-					const uiContent = yield* await this.forge.getContent(
-						clientSide.server.ui,
-					);
-					const ui = yield* uiSerializer.deserialize(JsonObject, uiContent);
-
-					configurations.server = { schema, ui };
+					configurations.server = serverConfigurations;
 				}
 
 				if (clientSide.malware) {
-					const schemaSerializer = yield* getSerializer(
-						clientSide.malware.schema,
+					const malwareConfigurations = yield* await this.getSchemaUiPair(
+						clientSide.malware,
 					);
-					const schemaContent = yield* await this.forge.getContent(
-						clientSide.malware.schema,
-					);
-					const schema = yield* schemaSerializer.deserialize(
-						JsonObject,
-						schemaContent,
-					);
-
-					const uiSerializer = yield* getSerializer(clientSide.malware.ui);
-					const uiContent = yield* await this.forge.getContent(
-						clientSide.malware.ui,
-					);
-					const ui = yield* uiSerializer.deserialize(JsonObject, uiContent);
-
-					configurations.malware = { schema, ui };
+					configurations.malware = malwareConfigurations;
 				}
 
 				this.configurations.clientSide = configurations;
@@ -342,43 +314,17 @@ export class MalInt {
 				const configurations: Configurations["outputs"] = {};
 
 				if (outputs.instance) {
-					const schemaSerializer = yield* getSerializer(
-						outputs.instance.schema,
+					const instanceConfigurations = yield* await this.getSchemaUiPair(
+						outputs.instance,
 					);
-					const schemaContent = yield* await this.forge.getContent(
-						outputs.instance.schema,
-					);
-					const schema = yield* schemaSerializer.deserialize(
-						JsonObject,
-						schemaContent,
-					);
-
-					const uiSerializer = yield* getSerializer(outputs.instance.ui);
-					const uiContent = yield* await this.forge.getContent(
-						outputs.instance.ui,
-					);
-					const ui = yield* uiSerializer.deserialize(JsonObject, uiContent);
-
-					configurations.instance = { schema, ui };
+					configurations.instance = instanceConfigurations;
 				}
 
 				if (outputs.victims) {
-					const schemaSerializer = yield* getSerializer(outputs.victims.schema);
-					const schemaContent = yield* await this.forge.getContent(
-						outputs.victims.schema,
+					const victimsConfigurations = yield* await this.getSchemaUiPair(
+						outputs.victims,
 					);
-					const schema = yield* schemaSerializer.deserialize(
-						JsonObject,
-						schemaContent,
-					);
-
-					const uiSerializer = yield* getSerializer(outputs.victims.ui);
-					const uiContent = yield* await this.forge.getContent(
-						outputs.victims.ui,
-					);
-					const ui = yield* uiSerializer.deserialize(JsonObject, uiContent);
-
-					configurations.victims = { schema, ui };
+					configurations.victims = victimsConfigurations;
 				}
 
 				this.configurations.outputs = configurations;
@@ -433,6 +379,28 @@ export class MalInt {
 
 	setServerHostname(hostname: string): Result<void, z.ZodError> {
 		return this.api.setServerHostname(hostname);
+	}
+
+	private getSchemaUiPair(paths: {
+		schema: string;
+		ui: string;
+	}): Promise<Result<{ schema: object; ui: object }, GetConfigurationsError>> {
+		return safeTry(
+			async function* (this: MalInt) {
+				const schemaSerializer = yield* getSerializer(paths.schema);
+				const schemaContent = yield* await this.forge.getContent(paths.schema);
+				const schema = yield* schemaSerializer.deserialize(
+					JsonObject,
+					schemaContent,
+				);
+
+				const uiSerializer = yield* getSerializer(paths.ui);
+				const uiContent = yield* await this.forge.getContent(paths.ui);
+				const ui = yield* uiSerializer.deserialize(JsonObject, uiContent);
+
+				return ok({ schema, ui });
+			}.bind(this),
+		);
 	}
 
 	private generateConfiguration(
