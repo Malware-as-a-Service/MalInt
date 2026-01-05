@@ -43,7 +43,10 @@ export type GetConfigurationsError =
 	| GetContentError
 	| DeserializeError
 	| InvalidExtensionError;
-export type GenerateConfigurationError = InvokeError | VariableNotFoundError;
+export type GenerateConfigurationError =
+	| InvokeError
+	| VariableNotFoundError
+	| InvalidConfigurationValueError;
 export type GenerateServerConfigurationError =
 	| GetConfigurationsError
 	| GenerateConfigurationError
@@ -68,4 +71,11 @@ export interface VariableNotFoundError {
 export interface ServerConfigurationRequiredError {
 	type: "serverConfigurationRequired";
 	message: string;
+}
+
+export interface InvalidConfigurationValueError {
+	type: "invalidConfigurationValue";
+	message: string;
+	path: string[];
+	valueType: string;
 }
