@@ -377,8 +377,137 @@ export class MalInt {
 		);
 	}
 
+	async getServerSecrets(): Promise<
+		Result<
+			Array<{ name: string; path: string[]; value: unknown }>,
+			GenerateServerConfigurationError
+		>
+	> {
+		return safeTry(
+			async function* (this: MalInt) {
+				const variables = yield* await this.getServerVariables();
+				const secrets = variables
+					.filter((variable) => variable.type === "secret")
+					.map(({ name, path, value }) => ({ name, path, value }));
+
+				return ok(secrets);
+			}.bind(this),
+		);
+	}
+
+	async getServerPlainText(): Promise<
+		Result<
+			Array<{ name: string; path: string[]; value: unknown }>,
+			GenerateServerConfigurationError
+		>
+	> {
+		return safeTry(
+			async function* (this: MalInt) {
+				const variables = yield* await this.getServerVariables();
+				const plainText = variables
+					.filter((variable) => variable.type === "plaintext")
+					.map(({ name, path, value }) => ({ name, path, value }));
+
+				return ok(plainText);
+			}.bind(this),
+		);
+	}
+
 	setServerHostname(hostname: string): Result<void, z.ZodError> {
 		return this.api.setServerHostname(hostname);
+	}
+
+	private getServerVariables(): Promise<
+		Result<
+			Array<{
+				name: string;
+				path: string[];
+				value: unknown;
+				type: "secret" | "plaintext";
+			}>,
+			GenerateServerConfigurationError
+		>
+	> {
+		return safeTry(
+			async function* (this: MalInt) {
+				const configurations =
+					this.configurations.serverSide ||
+					(yield* await this.getServerSideConfigurations());
+				const generatedConfiguration =
+					this.generatedServerConfiguration ||
+					(yield* await this.generateServerConfiguration());
+
+				const serverConfiguration = configurations.server;
+
+				if (!serverConfiguration) {
+					return err({
+						type: "serverConfigurationRequired",
+						message: "Server configuration is required",
+					});
+				}
+
+				this.generatedServerConfiguration = generatedConfiguration;
+
+				const variables =
+					this.getServerVariableDefinitions(serverConfiguration);
+
+				const resolvedVariables: Array<{
+					name: string;
+					path: string[];
+					value: unknown;
+					type: "secret" | "plaintext";
+				}> = [];
+
+				for (const variable of variables) {
+					const value = yield* this.resolveVariable(variable.path);
+					const segments = variable.path.split(".");
+					const name = segments.at(-1) ?? variable.path;
+					const path = segments.slice(0, -1);
+					resolvedVariables.push({
+						name,
+						path,
+						value,
+						type: variable.type,
+					});
+				}
+
+				return ok(resolvedVariables);
+			}.bind(this),
+		);
+	}
+
+	private getServerVariableDefinitions(
+		configuration: object,
+	): Array<{ path: string; type: "secret" | "plaintext" }> {
+		const stack: Array<{ source: object; path: string }> = [];
+		const variables: Array<{ path: string; type: "secret" | "plaintext" }> = [];
+
+		stack.push({ source: configuration, path: "" });
+
+		while (true) {
+			const item = stack.pop();
+
+			if (!item) {
+				break;
+			}
+
+			for (const [key, value] of Object.entries(item.source)) {
+				const path = item.path ? `${item.path}.${key}` : key;
+				const leafResult = ServerLeaf.safeParse(value);
+
+				if (leafResult.success) {
+					variables.push({ path, type: leafResult.data.type });
+
+					continue;
+				}
+
+				if (value && typeof value === "object" && !Array.isArray(value)) {
+					stack.push({ source: value as object, path });
+				}
+			}
+		}
+
+		return variables;
 	}
 
 	private getSchemaUiPair(paths: {
