@@ -6,6 +6,7 @@ import type {
 	DeserializeError,
 	InvalidExtensionError,
 } from "./configurations/errors";
+import type { InvokeError } from "./api/errors";
 import type { RunStatus } from "./forges";
 import type {
 	DispatchWorkflowError,
@@ -42,10 +43,29 @@ export type GetConfigurationsError =
 	| GetContentError
 	| DeserializeError
 	| InvalidExtensionError;
+export type GenerateConfigurationError = InvokeError | VariableNotFoundError;
+export type GenerateServerConfigurationError =
+	| GetConfigurationsError
+	| GenerateConfigurationError
+	| ServerConfigurationRequiredError;
+export type GenerateMalwareConfigurationError =
+	| GetConfigurationsError
+	| GenerateConfigurationError;
 
 export interface BuildFailedError {
 	type: "buildFailed";
 	message: string;
 	runIdentifier: number;
 	status: RunStatus;
+}
+
+export interface VariableNotFoundError {
+	type: "variableNotFound";
+	message: string;
+	path: string;
+}
+
+export interface ServerConfigurationRequiredError {
+	type: "serverConfigurationRequired";
+	message: string;
 }

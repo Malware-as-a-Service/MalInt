@@ -8,15 +8,22 @@ import { Api } from "./api";
 import type { InvokeError } from "./api/errors";
 import { getSerializer } from "./configurations/serializers";
 import {
+	FunctionLeaf,
 	JsonObject,
 	RepositoryConfiguration,
+	ServerLeaf,
 	ServerSideMalwareConfiguration,
 	ServerSideServerConfiguration,
+	VariableLeaf,
+	functionRegex,
 } from "./configurations/types";
 import type {
 	BuildContainerError,
 	BuildMalwareError,
 	CreateMalIntError,
+	GenerateConfigurationError,
+	GenerateMalwareConfigurationError,
+	GenerateServerConfigurationError,
 	GetConfigurationsError,
 	VariableNotFoundError,
 	WaitForContainerError,
@@ -381,8 +388,124 @@ export class MalInt {
 		);
 	}
 
+	async generateServerConfiguration(): Promise<
+		Result<object, GenerateServerConfigurationError>
+	> {
+		return safeTry(
+			async function* (this: MalInt) {
+				const configurations =
+					this.configurations.serverSide ||
+					(yield* await this.getServerSideConfigurations());
+
+				if (!configurations.server) {
+					return err({
+						type: "serverConfigurationRequired",
+						message: "Server configuration is required",
+					});
+				}
+
+				const generated = yield* this.generateConfiguration(
+					configurations.server,
+					false,
+				);
+				this.generatedServerConfiguration = generated;
+
+				return ok(generated);
+			}.bind(this),
+		);
+	}
+
+	async generateMalwareConfiguration(): Promise<
+		Result<object, GenerateMalwareConfigurationError>
+	> {
+		return safeTry(
+			async function* (this: MalInt) {
+				const configurations =
+					this.configurations.serverSide ||
+					(yield* await this.getServerSideConfigurations());
+
+				return ok(
+					yield* this.generateConfiguration(configurations.malware, true),
+				);
+			}.bind(this),
+		);
+	}
+
 	setServerHostname(hostname: string): Result<void, z.ZodError> {
 		return this.api.setServerHostname(hostname);
+	}
+
+	private generateConfiguration(
+		configuration: object,
+		allowVariableReferences: boolean,
+	): Result<object, GenerateConfigurationError> {
+		return safeTry(
+			function* (this: MalInt) {
+				const stack: Array<{
+					source: object;
+					target: Record<string, unknown>;
+				}> = [];
+				const generatedConfiguration: Record<string, unknown> = {};
+
+				stack.push({
+					source: configuration,
+					target: generatedConfiguration,
+				});
+
+				while (true) {
+					const item = stack.pop();
+
+					if (!item) {
+						break;
+					}
+
+					const { source, target } = item;
+
+					for (const [key, value] of Object.entries(source)) {
+						if (!allowVariableReferences) {
+							const serverResult = ServerLeaf.safeParse(value);
+
+							if (serverResult.success) {
+								target[key] = yield* this.executeFunction(
+									serverResult.data.function,
+								);
+
+								continue;
+							}
+						} else {
+							const functionResult = FunctionLeaf.safeParse(value);
+
+							if (functionResult.success) {
+								target[key] = yield* this.executeFunction(
+									functionResult.data.function,
+								);
+
+								continue;
+							}
+
+							const variableResult = VariableLeaf.safeParse(value);
+
+							if (variableResult.success) {
+								target[key] = yield* this.resolveVariable(
+									variableResult.data.from,
+								);
+
+								continue;
+							}
+						}
+
+						const nestedTarget: Record<string, unknown> = {};
+						target[key] = nestedTarget;
+						stack.push({
+							source: value as object,
+							target: nestedTarget,
+						});
+					}
+				}
+
+				return ok(generatedConfiguration);
+			}.bind(this),
+		);
 	}
 
 	private resolveVariable(
