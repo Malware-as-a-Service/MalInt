@@ -296,7 +296,7 @@ export class MalInt {
 		);
 	}
 
-	async getOutputConfigurations(): Promise<
+	async getOutputsConfigurations(): Promise<
 		Result<Configurations["outputs"], GetConfigurationsError>
 	> {
 		if (this.configurations.outputs) {
