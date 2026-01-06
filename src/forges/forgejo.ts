@@ -79,7 +79,7 @@ export class Forgejo implements Forge {
 		path: string,
 		message: string,
 		content: string,
-	): Promise<Result<void, WriteContentError>> {
+	): Promise<Result<string, WriteContentError>> {
 		return safeTry(
 			async function* (this: Forgejo) {
 				const file = yield* await this.getFile(path);
@@ -120,7 +120,18 @@ export class Forgejo implements Forge {
 					});
 				}
 
-				return ok(undefined);
+				const commitSha =
+					response.data.commit?.sha ?? response.data.content?.sha ?? null;
+
+				if (!commitSha) {
+					return err({
+						type: "generic" as const,
+						status: 0,
+						message: `Missing commit SHA after updating file "${path}".`,
+					});
+				}
+
+				return ok(commitSha);
 			}.bind(this),
 		);
 	}

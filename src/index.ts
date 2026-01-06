@@ -128,7 +128,7 @@ export class MalInt {
 				const serializer = yield* getSerializer(configurationPath);
 				const serializedContent = serializer.serialize(configuration);
 
-				yield* await this.forge.writeContent(
+				const commitSha = yield* await this.forge.writeContent(
 					configurationPath,
 					"Update malware configuration",
 					serializedContent,
@@ -139,6 +139,7 @@ export class MalInt {
 					this.repository.buildingBranch,
 					{
 						[artifactName.name]: artifactName.value,
+						commit_sha: commitSha,
 					},
 				);
 
