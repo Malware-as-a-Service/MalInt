@@ -2,6 +2,9 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+/**
+ * Loaded configuration definitions grouped by category.
+ */
 export interface Configurations {
 	serverSide: {
 		server?: object;

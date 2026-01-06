@@ -32,6 +32,9 @@ import { type Forge, type ForgeKind, getForge, RunStatus } from "./forges";
 import type { Repository } from "./repositories";
 import type { Configurations } from "./types";
 
+/**
+ * Main entry point for interacting with a MaaS repository through a forge.
+ */
 export class MalInt {
 	private forge: Forge;
 	private repository: Repository;
@@ -52,6 +55,9 @@ export class MalInt {
 		this.api = new Api();
 	}
 
+	/**
+	 * Creates a MalInt instance by loading the repository configuration.
+	 */
 	static async createMalInt(
 		repository: Repository,
 		forgeKind: ForgeKind,
@@ -68,6 +74,10 @@ export class MalInt {
 		});
 	}
 
+	/**
+	 * Dispatches the server container build workflow.
+	 * Returns an active container build if one is already running.
+	 */
 	async buildContainer(registryCredentials: {
 		url: string;
 		username: string;
@@ -116,6 +126,9 @@ export class MalInt {
 		);
 	}
 
+	/**
+	 * Writes the malware configuration and dispatches the malware build workflow.
+	 */
 	async buildMalware(
 		configuration: object,
 	): Promise<Result<number, BuildMalwareError>> {
@@ -147,6 +160,9 @@ export class MalInt {
 		);
 	}
 
+	/**
+	 * Polls a container build run until it completes.
+	 */
 	async waitForContainer(
 		runIdentifier: number,
 		pollInterval = 5000,
@@ -179,6 +195,9 @@ export class MalInt {
 		);
 	}
 
+	/**
+	 * Polls a malware build run until it completes and downloads the artifact.
+	 */
 	async waitForMalware(
 		runIdentifier: number,
 		pollInterval = 5000,
@@ -217,6 +236,9 @@ export class MalInt {
 		);
 	}
 
+	/**
+	 * Loads server-side configuration definitions from the repository.
+	 */
 	async getServerSideConfigurations(): Promise<
 		Result<Configurations["serverSide"], GetConfigurationsError>
 	> {
@@ -258,6 +280,9 @@ export class MalInt {
 		);
 	}
 
+	/**
+	 * Loads client-side configuration definitions from the repository.
+	 */
 	async getClientSideConfigurations(): Promise<
 		Result<Configurations["clientSide"], GetConfigurationsError>
 	> {
@@ -296,6 +321,9 @@ export class MalInt {
 		);
 	}
 
+	/**
+	 * Loads output configuration definitions from the repository.
+	 */
 	async getOutputsConfigurations(): Promise<
 		Result<Configurations["outputs"], GetConfigurationsError>
 	> {
@@ -334,6 +362,10 @@ export class MalInt {
 		);
 	}
 
+	/**
+	 * Generates the server configuration by resolving functions and references.
+	 * Uses server-side configuration definitions as the source.
+	 */
 	async generateServerConfiguration(): Promise<
 		Result<object, GenerateServerConfigurationError>
 	> {
@@ -361,6 +393,10 @@ export class MalInt {
 		);
 	}
 
+	/**
+	 * Generates the malware configuration by resolving functions and references.
+	 * Uses server-side configuration definitions as the source.
+	 */
 	async generateMalwareConfiguration(): Promise<
 		Result<object, GenerateMalwareConfigurationError>
 	> {
@@ -377,6 +413,9 @@ export class MalInt {
 		);
 	}
 
+	/**
+	 * Returns generated server variables marked as secrets.
+	 */
 	async getServerSecrets(): Promise<
 		Result<
 			Array<{ name: string; path: string[]; value: unknown }>,
@@ -395,6 +434,9 @@ export class MalInt {
 		);
 	}
 
+	/**
+	 * Returns generated server variables marked as plaintext.
+	 */
 	async getServerPlainText(): Promise<
 		Result<
 			Array<{ name: string; path: string[]; value: unknown }>,
@@ -413,6 +455,9 @@ export class MalInt {
 		);
 	}
 
+	/**
+	 * Sets the hostname used by networking handlers.
+	 */
 	setServerHostname(hostname: string): Result<void, z.ZodError> {
 		return this.api.setServerHostname(hostname);
 	}

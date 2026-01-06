@@ -8,6 +8,9 @@ const variableNameRegex = /^(?!FORGEJO_|GITHUB_)[A-Za-z0-9_]+$/;
 const variableNameErrorMessage =
 	'Variable name must not start with "FORGEJO_" or "GITHUB_" and can only contain alphanumeric characters and underscores.';
 
+/**
+ * Repository-level configuration schema.
+ */
 export const RepositoryConfiguration = z.object({
 	forge: z.object({
 		secrets: z.object({
@@ -86,23 +89,38 @@ export const RepositoryConfiguration = z.object({
 	}),
 });
 
+/**
+ * Function reference pattern used in configuration leaves.
+ */
 export const functionRegex = /@(\w+)\(([^)]*)\)/;
 const functionErrorMessage =
 	"Function must match format: @functionName(firstParameter, secondParameter, ...)";
 
+/**
+ * Leaf that calls a handler function.
+ */
 export const FunctionLeaf = z.object({
 	function: z.string().regex(functionRegex, functionErrorMessage),
 });
 
+/**
+ * Leaf that references a variable from server configuration.
+ */
 export const VariableLeaf = z.object({
 	from: z.string(),
 });
 
+/**
+ * Server-side leaf that resolves to a value with a classification type.
+ */
 export const ServerLeaf = z.object({
 	function: z.string().regex(functionRegex, functionErrorMessage),
 	type: z.enum(["secret", "plaintext"]),
 });
 
+/**
+ * Server-side server configuration schema.
+ */
 export const ServerSideServerConfiguration: z.ZodType<{
 	[key: string]: unknown;
 }> = z.lazy(() =>
@@ -114,6 +132,9 @@ const ServerSideMalwareConfigurationValueLeaf = z.union([
 	VariableLeaf,
 ]);
 
+/**
+ * Server-side malware configuration schema.
+ */
 export const ServerSideMalwareConfiguration: z.ZodType<{
 	[key: string]: unknown;
 }> = z.lazy(() =>
@@ -127,6 +148,11 @@ export const ServerSideMalwareConfiguration: z.ZodType<{
 		),
 );
 
-// Needs to be done
+/**
+ * UI schema placeholder.
+ */
 export const UiSchema = z.any();
+/**
+ * Generic JSON object schema.
+ */
 export const JsonObject = z.object({}).catchall(z.any());

@@ -4,8 +4,10 @@
 
 import type { ZodError } from "zod";
 
+/** Errors returned while deserializing configuration content. */
 export type DeserializeError = FailToParseError | ZodError;
 
+/** Returned when a configuration file extension is not supported. */
 export interface InvalidExtensionError {
 	type: "invalidExtension";
 	message: string;
@@ -13,6 +15,7 @@ export interface InvalidExtensionError {
 	validExtensions: string[];
 }
 
+/** Returned when raw configuration content cannot be parsed. */
 export interface FailToParseError {
 	type: "failToParse";
 	message: string;

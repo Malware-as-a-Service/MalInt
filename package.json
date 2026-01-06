@@ -33,6 +33,7 @@
 		"forgejo-js": "^11.0.0",
 		"neverthrow": "^8.2.0",
 		"smol-toml": "^1.6.0",
+		"typedoc": "^0.28.15",
 		"zod": "^4.3.5"
 	}
 }
