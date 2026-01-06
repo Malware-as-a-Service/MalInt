@@ -44,6 +44,7 @@ export const RepositoryConfiguration = z.object({
 			name: z.string(),
 			value: z.string(),
 		}),
+		commitShaName: z.string(),
 	}),
 	configurations: z.object({
 		serverSide: z.object({

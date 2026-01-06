@@ -121,7 +121,7 @@ export class MalInt {
 	): Promise<Result<number, BuildMalwareError>> {
 		return safeTry(
 			async function* (this: MalInt) {
-				const { configurationPath, workflow, artifactName } =
+				const { configurationPath, workflow, artifactName, commitShaName } =
 					this.repositoryConfiguration.malware;
 
 				const serializer = yield* getSerializer(configurationPath);
@@ -138,7 +138,7 @@ export class MalInt {
 					this.repository.buildingBranch,
 					{
 						[artifactName.name]: artifactName.value,
-						commit_sha: commitSha,
+						[commitShaName]: commitSha,
 					},
 				);
 
