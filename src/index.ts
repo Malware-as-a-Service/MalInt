@@ -582,8 +582,7 @@ export class MalInt {
 		allowVariableReferences: boolean,
 	): Result<object, GenerateConfigurationError> {
 		return generateConfiguration(configuration, allowVariableReferences, {
-			executeFunction: (functionString) =>
-				this.executeFunction(functionString),
+			executeFunction: (functionString) => this.executeFunction(functionString),
 			resolveVariable: (variablePath) => this.resolveVariable(variablePath),
 		});
 	}
