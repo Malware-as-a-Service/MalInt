@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 export interface Configurations {
-	serverSide?: {
+	serverSide: {
 		server?: object;
 		malware: object;
 	};

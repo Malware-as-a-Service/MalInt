@@ -36,7 +36,7 @@ export class MalInt {
 	forge: Forge;
 	private repository: Repository;
 	private repositoryConfiguration: z.infer<typeof RepositoryConfiguration>;
-	private configurations: Configurations;
+	private configurations: Partial<Configurations>;
 	private api: Api;
 	private generatedServerConfiguration?: object;
 
@@ -345,7 +345,7 @@ export class MalInt {
 
 				if (!configurations.server) {
 					return err({
-						type: "serverConfigurationRequired",
+						type: "serverConfigurationRequired" as const,
 						message: "Server configuration is required",
 					});
 				}
@@ -417,7 +417,7 @@ export class MalInt {
 		return this.api.setServerHostname(hostname);
 	}
 
-	private getServerVariables(): Promise<
+	private async getServerVariables(): Promise<
 		Result<
 			Array<{
 				name: string;
@@ -428,7 +428,7 @@ export class MalInt {
 			GenerateServerConfigurationError
 		>
 	> {
-		return safeTry(
+		return await safeTry(
 			async function* (this: MalInt) {
 				const configurations =
 					this.configurations.serverSide ||
@@ -441,7 +441,7 @@ export class MalInt {
 
 				if (!serverConfiguration) {
 					return err({
-						type: "serverConfigurationRequired",
+						type: "serverConfigurationRequired" as const,
 						message: "Server configuration is required",
 					});
 				}
@@ -510,11 +510,11 @@ export class MalInt {
 		return variables;
 	}
 
-	private getSchemaUiPair(paths: {
+	private async getSchemaUiPair(paths: {
 		schema: string;
 		ui: string;
 	}): Promise<Result<{ schema: object; ui: object }, GetConfigurationsError>> {
-		return safeTry(
+		return await safeTry(
 			async function* (this: MalInt) {
 				const schemaSerializer = yield* getSerializer(paths.schema);
 				const schemaContent = yield* await this.forge.getContent(paths.schema);
