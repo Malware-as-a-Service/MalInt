@@ -33,7 +33,7 @@ import type { Repository } from "./repositories";
 import type { Configurations } from "./types";
 
 export class MalInt {
-	forge: Forge;
+	private forge: Forge;
 	private repository: Repository;
 	private repositoryConfiguration: z.infer<typeof RepositoryConfiguration>;
 	private configurations: Partial<Configurations>;
