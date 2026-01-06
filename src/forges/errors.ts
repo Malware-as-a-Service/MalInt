@@ -6,7 +6,11 @@ import type { ForgeKind } from ".";
 
 export type SetSecretError = GenericError;
 export type GetContentError = NotFoundError | GenericError;
-export type WriteContentError = NotFoundError | ConflictError | GenericError;
+export type WriteContentError =
+	| NotFoundError
+	| ConflictError
+	| GenericError
+	| InvalidResponseError;
 export type DispatchWorkflowError = NotFoundError | GenericError;
 export type GetRunStatusError = NotFoundError | GenericError;
 export type GetActiveRunError = GenericError;
@@ -36,4 +40,10 @@ export interface GenericError {
 	status: number;
 	message: string;
 	error?: Error;
+}
+
+export interface InvalidResponseError {
+	type: "invalidResponse";
+	message: string;
+	detail?: string;
 }

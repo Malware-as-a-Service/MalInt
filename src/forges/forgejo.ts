@@ -125,9 +125,9 @@ export class Forgejo implements Forge {
 
 				if (!commitSha) {
 					return err({
-						type: "generic" as const,
-						status: 0,
+						type: "invalidResponse" as const,
 						message: `Missing commit SHA after updating file "${path}".`,
+						detail: "Expected commit.sha or content.sha in response.",
 					});
 				}
 
