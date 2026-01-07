@@ -9,9 +9,19 @@
 	"packageManager": "pnpm@10.27.0",
 	"exports": {
 		".": {
-			"types": "./dist/index.d.ts",
+			"types": "./dist/index.d.mts",
 			"import": "./dist/index.mjs",
-			"require": "./dist/index.js"
+			"require": "./dist/index.cjs"
+		},
+		"./errors": {
+			"types": "./dist/errors.d.mts",
+			"import": "./dist/errors.mjs",
+			"require": "./dist/errors.cjs"
+		},
+		"./repositories": {
+			"types": "./dist/repositories.d.mts",
+			"import": "./dist/repositories.mjs",
+			"require": "./dist/repositories.cjs"
 		}
 	},
 	"scripts": {

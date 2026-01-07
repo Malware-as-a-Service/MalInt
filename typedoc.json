@@ -4,10 +4,6 @@
 		"src/index.ts",
 		"src/errors.ts",
 		"src/repositories.ts",
-		"src/forges/index.ts",
-		"src/forges/errors.ts",
-		"src/configurations/errors.ts",
-		"src/api/errors.ts"
 	],
 	"entryPointStrategy": "resolve"
 }
