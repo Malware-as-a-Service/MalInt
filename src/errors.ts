@@ -118,3 +118,24 @@ export interface InvalidConfigurationValueError {
 	path: string[];
 	valueType: string;
 }
+
+export type {
+	ConflictError,
+	DispatchWorkflowError,
+	DownloadArtifactError,
+	GenericError,
+	GetActiveRunError,
+	GetContentError,
+	GetRunStatusError,
+	InvalidForgeKindError,
+	InvalidResponseError,
+	NotFoundError,
+	SetSecretError,
+	WriteContentError,
+} from "./forges/errors";
+export type {
+	DeserializeError,
+	FailToParseError,
+	InvalidExtensionError,
+} from "./configurations/errors";
+export type { FunctionNotFoundError, InvokeError } from "./api/errors";

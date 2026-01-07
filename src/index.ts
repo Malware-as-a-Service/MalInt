@@ -31,6 +31,7 @@ import type {
 import { type Forge, type ForgeKind, getForge, RunStatus } from "./forges";
 import type { Repository } from "./repositories";
 import type { Configurations } from "./types";
+export { ForgeKind, RunStatus } from "./forges";
 
 /**
  * Main entry point for interacting with a MaaS repository through a forge.
