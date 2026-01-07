@@ -39,7 +39,7 @@ jobs:
       - name: Install biome
         uses: biomejs/setup-biome@v2
         with:
-          version: 1.9
+          version: 2.3
       - name: Lint Typescript and JSON code
         run: biome lint .
   markdownlint-cli2:
