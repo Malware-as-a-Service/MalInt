@@ -1,9 +1,5 @@
 {
 	"$schema": "https://typedoc.org/schema.json",
-	"entryPoints": [
-		"src/index.ts",
-		"src/errors.ts",
-		"src/repositories.ts",
-	],
+	"entryPoints": ["src/index.ts", "src/errors.ts", "src/repositories.ts"],
 	"entryPointStrategy": "resolve"
 }
