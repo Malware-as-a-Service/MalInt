@@ -167,7 +167,6 @@ if (artifactResult.isErr()) {
 
 // This is usually a zip buffer.
 const malwareBuffer = artifactResult.value;
-}
 ```
 
 ## 👷 Contributing
