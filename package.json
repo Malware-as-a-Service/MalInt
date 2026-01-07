@@ -24,6 +24,9 @@
 			"require": "./dist/repositories.cjs"
 		}
 	},
+	"files": [
+		"./dist/"
+	],
 	"scripts": {
 		"dev": "tsdown --watch",
 		"build": "tsdown",
