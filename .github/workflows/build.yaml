@@ -1,0 +1,32 @@
+---
+# SPDX-FileCopyrightText: 2025 The MalInt development team
+#
+# SPDX-License-Identifier: CC0-1.0
+name: Build and test the project
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  typescript:
+    name: Build with tsdown
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 23
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install
+      - name: Build Typescript code
+        run: pnpm run build

@@ -1,0 +1,21 @@
+---
+# SPDX-FileCopyrightText: 2025 The MalInt development team
+#
+# SPDX-License-Identifier: CC0-1.0
+name: Audit the project
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  pnpm:
+    name: Audit with pnpm
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: Audit dependencies
+        run: pnpm audit

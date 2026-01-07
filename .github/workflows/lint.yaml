@@ -1,0 +1,52 @@
+---
+# SPDX-FileCopyrightText: 2025 The MalInt development team
+# yamllint disable-line
+# SPDX-FileCopyrightText: 2022 Free Software Foundation Europe e.V. <https://fsfe.org>
+#
+# SPDX-License-Identifier: CC0-1.0
+name: Lint the project
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  yamllint:
+    name: Lint with yamllint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: '3.13'
+          enable-cache: true
+      - name: Lint YAML code
+        run: uvx yamllint -s .
+  reuse:
+    name: Lint with REUSE
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Lint licenses
+        uses: fsfe/reuse-action@v6
+  biome:
+    name: Lint with biome
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Install biome
+        uses: biomejs/setup-biome@v2
+        with:
+          version: 1.9
+      - name: Lint Typescript and JSON code
+        run: biome lint .
+  markdownlint-cli2:
+    name: Lint with markdownlint-cli2
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Lint Markdown code
+        uses: DavidAnson/markdownlint-cli2-action@v22
