@@ -43,20 +43,20 @@ SPDX-License-Identifier: GPL-3.0-or-later
   </p>
 </div>
 
-## :clipboard: Table of content
+## 📋 Table of content
 
-- [:clipboard: Table of content](#clipboard-table-of-content)
-- [:warning: Disclaimer](#warning-disclaimer)
-- [:eyes: About the project](#eyes-about-the-project)
-  - [:question: Why](#question-why)
-- [:rocket: Getting started](#rocket-getting-started)
-  - [:gear: Prerequisites](#gear-prerequisites)
-  - [:package: Installation](#package-installation)
-  - [:ninja: Quick examples](#ninja-quick-examples)
-- [:construction_worker: Contributing](#construction_worker-contributing)
-- [:books: Licenses](#books-licenses)
+- [📋 Table of content](#-table-of-content)
+- [⚠️ Disclaimer](#%EF%B8%8F-disclaimer)
+- [👀 About the project](#-about-the-project)
+  - [❓ Why](#-why)
+- [🚀 Getting started](#-getting-started)
+  - [⚙️ Prerequisites](#%EF%B8%8F-prerequisites)
+  - [📦 Installation](#-installation)
+  - [🥷 Quick examples](#-quick-examples)
+- [👷 Contributing](#-contributing)
+- [📚 Licenses](#-licenses)
 
-## :warning: Disclaimer
+## ⚠️ Disclaimer
 
 This TypeScript library integrates a repository with the
 [MaaS platform][platform]. It does not validate that a repository is safe,
@@ -64,7 +64,7 @@ correct, or buildable. You are responsible for reviewing your configuration and
 build outputs. **I am not a TypeScript developer and did my best, so there is room
 for improvement.**
 
-## :eyes: About the project
+## 👀 About the project
 
 [MalInt] is a TypeScript library that connects a [MaaS] repository to
 an automation forge like [Forgejo]. It reads repository configuration files,
@@ -72,7 +72,7 @@ loads client and output schemas, generates server and malware configurations,
 and dispatches build workflows. It also provides helpers to download build
 artifacts and to classify server variables as secrets or plaintext.
 
-### :question: Why
+### ❓ Why
 
 Integration logic is easy to duplicate and hard to keep consistent across
 projects. MalInt centralizes that logic so you can:
@@ -81,16 +81,16 @@ projects. MalInt centralizes that logic so you can:
 - Keep configuration parsing and generation consistent
 - Standardize error handling and workflow interaction
 
-## :rocket: Getting started
+## 🚀 Getting started
 
 If you want to integrate a repository with the platform, follow the steps
 below.
 
-### :gear: Prerequisites
+### ⚙️ Prerequisites
 
 You only need [pnpm].
 
-### :package: Installation
+### 📦 Installation
 
 1. Install the library from Git
 
@@ -98,7 +98,7 @@ You only need [pnpm].
    pnpm add git+https://github.com/Malware-as-a-Service/MalInt.git
    ```
 
-### :ninja: Quick examples
+### 🥷 Quick examples
 
 Here is a small script that fetches configurations and triggers a build:
 
@@ -134,7 +134,7 @@ if (result.isOk()) {
 }
 ```
 
-## :construction_worker: Contributing
+## 👷 Contributing
 
 Contributions are what make the open source community such an amazing place to
 learn, inspire, and create.\
@@ -145,7 +145,7 @@ If you want, you can help me with any kind of work, for example:
 - Correct our English errors
 - Licensing stuff
 
-## :books: Licenses
+## 📚 Licenses
 
 Distributed under the [GPL 3.0 or later] license.
 
