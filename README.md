@@ -103,8 +103,7 @@ You only need [pnpm].
 Here is a small script that fetches configurations and triggers a build:
 
 ```ts
-import { MalInt } from "MalInt";
-import { ForgeKind } from "MalInt/forges";
+import { MalInt, ForgeKind } from "MalInt";
 import type { Repository } from "MalInt/repositories";
 
 const repository: Repository = {
@@ -116,21 +115,58 @@ const repository: Repository = {
   token: "YOUR_FORGE_TOKEN",
 };
 
-const result = await MalInt.createMalInt(repository, ForgeKind.Forgejo);
+const malIntResult = await MalInt.createMalInt(repository, ForgeKind.Forgejo);
 
-if (result.isOk()) {
-  const malInt = result.value;
-  const serverConfigurations = await malInt.getServerSideConfigurations();
-  const serverConfig = await malInt.generateServerConfiguration();
-  const malwareConfig = await malInt.generateMalwareConfiguration();
+if (malIntResult.isErr()) {
+  throw malIntResult.error;
+}
 
-  if (
-    serverConfigurations.isOk() &&
-    serverConfig.isOk() &&
-    malwareConfig.isOk()
-  ) {
-    await malInt.buildMalware(malwareConfig.value);
-  }
+const malInt = malIntResult.value;
+
+// Generate the server configuration first if malware configuration references
+// server values. Otherwise, you will get undefined reference errors.
+// You can also fetch generated secrets or plaintext variables for your server
+// environment, using the dedicated helper methods.
+const serverConfigurationResult = await malInt.generateServerConfiguration();
+
+if (serverConfigurationResult.isErr()) {
+  throw serverConfigurationResult.error;
+}
+
+// Set the server hostname after provisioning the server (ECS, VM, or similar).
+// The malware needs to know the server hostname, so we generate the server
+// configuration first and keep references from malware to server.
+const hostnameResult = malInt.setServerHostname("c2.example.com");
+
+if (hostnameResult.isErr()) {
+  throw hostnameResult.error;
+}
+
+const malwareConfigurationResult = await malInt.generateMalwareConfiguration();
+
+if (malwareConfigurationResult.isErr()) {
+  throw malwareConfigurationResult.error;
+}
+
+// If your registry does not have the server image, build it before deployment
+// so the hosting platform knows where to pull it from.
+const buildResult = await malInt.buildMalware(malwareConfigurationResult.value);
+
+if (buildResult.isErr()) {
+  throw buildResult.error;
+}
+
+const runIdentifier = buildResult.value;
+
+// Poll at a regular interval until the build completes.
+const artifactResult = await malInt.waitForMalware(runIdentifier);
+
+if (artifactResult.isErr()) {
+  throw artifactResult.error;
+}
+
+// This is usually a zip buffer.
+const malwareBuffer = artifactResult.value;
 }
 ```
 
