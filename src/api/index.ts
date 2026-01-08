@@ -12,22 +12,23 @@ import "./handlers/generators";
 import "./handlers/networking";
 
 export class Api {
-	constructor() {
-		const handler = registry.get("serverHostname");
+	private readonly registry: Map<string, HandlerDefinition>;
 
-		if (handler) {
-			registry.set("serverHostname", {
-				parametersSchema: z.tuple([]),
-				function: handler.function.bind(null, "localhost"),
-			});
-		}
+	constructor() {
+		this.registry = new Map(registry);
+		const handler = this.registry.get("serverHostname") as HandlerDefinition;
+
+		this.registry.set("serverHostname", {
+			parametersSchema: z.tuple([]),
+			function: handler.function.bind(null, "localhost"),
+		});
 	}
 
 	invoke(
 		functionName: string,
 		...args: string[]
 	): Result<unknown, InvokeError> {
-		const handler = registry.get(functionName);
+		const handler = this.registry.get(functionName);
 
 		if (handler === undefined) {
 			return err({
@@ -53,9 +54,8 @@ export class Api {
 			return err(error);
 		}
 
-		const handler = registry.get("serverHostname") as HandlerDefinition;
-
-		registry.set("serverHostname", {
+		const handler = this.registry.get("serverHostname") as HandlerDefinition;
+		this.registry.set("serverHostname", {
 			...handler,
 			function: Networking.serverHostname.bind(null, data),
 		});
