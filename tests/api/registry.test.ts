@@ -18,6 +18,7 @@ describe("Api registry", () => {
 		Handler("uppercase")({ handler }, "handler");
 
 		const definition = registry.get("uppercase");
+
 		expect(definition?.parametersSchema).toBe(handler.parametersSchema);
 		expect(definition?.function("value")).toBe("VALUE");
 	});
@@ -33,6 +34,7 @@ describe("Api registry", () => {
 		Handler("constant")({ handler: secondHandler }, "handler");
 
 		const definition = registry.get("constant");
+
 		expect(definition?.function()).toBe(2);
 	});
 });
