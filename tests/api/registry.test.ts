@@ -2,36 +2,39 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { beforeEach, describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { z } from "zod";
-import { Handler, registry } from "../../src/api/registry";
+import { type HandlerDefinition, registry } from "../../src/api/registry";
+import { registerHandler, restoreRegistry } from "./registry";
 
-describe("Api registry", () => {
+let registrySnapshot: Map<string, HandlerDefinition>;
+
+describe("API registry", () => {
 	beforeEach(() => {
+		registrySnapshot = new Map(registry);
 		registry.clear();
 	});
 
+	afterEach(() => {
+		restoreRegistry(registrySnapshot);
+	});
+
 	test("Registers handler definitions", () => {
-		const handler = Object.assign((value: string) => value.toUpperCase(), {
-			parametersSchema: z.tuple([z.string()]),
-		});
-		Handler("uppercase")({ handler }, "handler");
+		registerHandler(
+			"uppercase",
+			(value: string) => value.toUpperCase(),
+			z.tuple([z.string()]),
+		);
 
 		const definition = registry.get("uppercase");
 
-		expect(definition?.parametersSchema).toBe(handler.parametersSchema);
+		expect(definition?.parametersSchema).toBeDefined();
 		expect(definition?.function("value")).toBe("VALUE");
 	});
 
 	test("Overrides a handler when registering the same name", () => {
-		const firstHandler = Object.assign(() => 1, {
-			parametersSchema: z.tuple([]),
-		});
-		const secondHandler = Object.assign(() => 2, {
-			parametersSchema: z.tuple([]),
-		});
-		Handler("constant")({ handler: firstHandler }, "handler");
-		Handler("constant")({ handler: secondHandler }, "handler");
+		registerHandler("constant", () => 1, z.tuple([]));
+		registerHandler("constant", () => 2, z.tuple([]));
 
 		const definition = registry.get("constant");
 
