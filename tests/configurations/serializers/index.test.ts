@@ -8,14 +8,14 @@ import { Json } from "../../../src/configurations/serializers/json";
 import { Toml } from "../../../src/configurations/serializers/toml";
 
 describe("getSerializer", () => {
-	test("Returns the JSON serializer for .json files", () => {
+	test("Returns the Json serializer for JSON files", () => {
 		const result = getSerializer("configuration.json");
 
 		expect(result.isOk()).toBe(true);
 		expect(result._unsafeUnwrap()).toBeInstanceOf(Json);
 	});
 
-	test("Returns the TOML serializer for .toml files", () => {
+	test("Returns the Toml serializer for TOML files", () => {
 		const result = getSerializer("configuration.toml");
 
 		expect(result.isOk()).toBe(true);
@@ -26,6 +26,6 @@ describe("getSerializer", () => {
 		const result = getSerializer("configuration.configuration");
 
 		expect(result.isErr()).toBe(true);
-		expect(result._unsafeUnwrapErr()).toBe("invalidExtension");
+		expect(result._unsafeUnwrapErr().type).toBe("invalidExtension");
 	});
 });
