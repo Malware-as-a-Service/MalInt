@@ -61,14 +61,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 This TypeScript library integrates a repository with the
 [MaaS platform][platform]. It does not validate that a repository is safe,
 correct, or buildable. You are responsible for reviewing your configuration and
-build outputs. **I am not a TypeScript developer and did my best, so there is room
-for improvement.**
+build outputs. **I am not a TypeScript developer and did my best; this is a quick
+V1 and the API/structure may evolve at any time. Don't take this as the final reference.**
 
 ## 👀 About the project
 
 [MalInt] is a TypeScript library that connects a [MaaS] repository to
 an automation forge like [Forgejo]. It reads repository configuration files,
-loads client and output schemas, generates server and malware configurations,
+loads client and state schemas, generates server and malware configurations,
 and dispatches build workflows. It also provides helpers to download build
 artifacts and to classify server variables as secrets or plaintext.
 
