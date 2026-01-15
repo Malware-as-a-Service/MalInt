@@ -9,16 +9,13 @@ import { schema, validValue } from "./samples";
 
 const validToml = "number = 0";
 const invalidToml = "number =";
-const invalidTomlValue = "number = \"two\"";
+const invalidTomlValue = 'number = "two"';
 const serializer = new Toml();
 
 describe("TOML serializer", () => {
 	describe("deserialize", () => {
 		test("Deserializes valid objects", () => {
-			const result = serializer.deserialize(
-				schema,
-				validToml,
-			);
+			const result = serializer.deserialize(schema, validToml);
 
 			expect(result.isOk()).toBe(true);
 			expect(result._unsafeUnwrap()).toStrictEqual(validValue);
@@ -32,10 +29,7 @@ describe("TOML serializer", () => {
 		});
 
 		test("Rejects invalid objects", () => {
-			const result = serializer.deserialize(
-				schema,
-				invalidTomlValue,
-			);
+			const result = serializer.deserialize(schema, invalidTomlValue);
 
 			expect(result.isErr()).toBe(true);
 			expect(result._unsafeUnwrapErr()).toBeInstanceOf(ZodError);

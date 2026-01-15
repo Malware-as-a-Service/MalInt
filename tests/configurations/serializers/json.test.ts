@@ -7,18 +7,15 @@ import { ZodError } from "zod";
 import { Json } from "../../../src/configurations/serializers/json";
 import { schema, validValue } from "./samples";
 
-const validJson = "{\"number\":0}";
+const validJson = '{"number":0}';
 const invalidJson = "{ number: 0";
-const invalidJsonValue = "{\"number\":\"two\"}";
+const invalidJsonValue = '{"number":"two"}';
 const serializer = new Json();
 
 describe("JSON serializer", () => {
 	describe("deserialize", () => {
 		test("Deserializes valid objects", () => {
-			const result = serializer.deserialize(
-				schema,
-				validJson,
-			);
+			const result = serializer.deserialize(schema, validJson);
 
 			expect(result.isOk()).toBe(true);
 			expect(result._unsafeUnwrap()).toStrictEqual(validValue);
@@ -32,10 +29,7 @@ describe("JSON serializer", () => {
 		});
 
 		test("Rejects invalid objects", () => {
-			const result = serializer.deserialize(
-				schema,
-				invalidJsonValue,
-			);
+			const result = serializer.deserialize(schema, invalidJsonValue);
 
 			expect(result.isErr()).toBe(true);
 			expect(result._unsafeUnwrapErr()).toBeInstanceOf(ZodError);

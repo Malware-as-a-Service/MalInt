@@ -20,7 +20,7 @@ function withEmptyRegistry() {
 	registerHandler(
 		"serverHostname",
 		serverHostnameDefinition.function,
-		serverHostnameDefinition.parametersSchema
+		serverHostnameDefinition.parametersSchema,
 	);
 }
 

@@ -4,45 +4,104 @@
 
 export const repository = {
 	forge: {
-		buildingBranchVariableName: "BUILDING_BRANCH",
-		configurationPathVariableName: "CONFIGURATION_PATH",
+		secrets: {
+			registryUrl: "REGISTRY_URL",
+			registryUsername: "REGISTRY_USERNAME",
+			registryPassword: "REGISTRY_PASSWORD",
+		},
 	},
 	server: {
-		containerfilePath: "Containerfile",
+		workflow: "server.yml",
+		containerfilePath: {
+			name: "CONTAINERFILE_PATH",
+			value: "Containerfile",
+		},
+		containerName: {
+			name: "CONTAINER_NAME",
+			value: "malint-server",
+		},
+		containerVersion: {
+			name: "CONTAINER_VERSION",
+			value: "1.0.0",
+		},
 	},
 	malware: {
 		configurationPath: "malware.toml",
+		workflow: "malware.yml",
+		artifactName: {
+			name: "ARTIFACT_NAME",
+			value: "malware",
+		},
+		commitShaName: "commit_sha",
 	},
 	configurations: {
 		serverSide: {
-			serverPath: "configurations/server/server.toml",
-			malwarePath: "configurations/server/malware.toml",
+			server: "configurations/server/server.toml",
+			malware: "configurations/server/malware.toml",
 		},
 		clientSide: {
-			serverPath: "configurations/client/server.schema.json",
-			serverUiPath: "configurations/client/server-ui.schema.json",
-			malwarePath: "configurations/client/malware.schema.json",
-			malwareUiPath: "configurations/client.malware-ui.schema.json",
+			server: {
+				schema: "configurations/client/server.schema.json",
+				ui: "configurations/client/server-ui.schema.json",
+			},
+			malware: {
+				schema: "configurations/client/malware.schema.json",
+				ui: "configurations/client/malware-ui.schema.json",
+			},
+		},
+		states: {
+			instance: {
+				schema: "configurations/states/instance.schema.json",
+				ui: "configurations/states/instance-ui.schema.json",
+			},
+			victims: {
+				schema: "configurations/states/victims.schema.json",
+				ui: "configurations/states/victims-ui.schema.json",
+			},
 		},
 	},
 };
 export const invalidRepository = {
 	forge: {
-		buildingBranchVariableName: "FORGEJO_INVALID",
-		configurationPathVariableName: "CONFIGURATION_PATH",
+		secrets: {
+			registryUrl: "FORGEJO_INVALID",
+			registryUsername: "REGISTRY_USERNAME",
+			registryPassword: "REGISTRY_PASSWORD",
+		},
 	},
 	server: {
-		containerfilePath: "Containerfile",
+		workflow: "server.yml",
+		containerfilePath: {
+			name: "CONTAINERFILE_PATH",
+			value: "Containerfile",
+		},
+		containerName: {
+			name: "CONTAINER_NAME",
+			value: "malint-server",
+		},
+		containerVersion: {
+			name: "CONTAINER_VERSION",
+			value: "1.0.0",
+		},
 	},
 	malware: {
 		configurationPath: "malware.toml",
+		workflow: "malware.yml",
+		artifactName: {
+			name: "ARTIFACT_NAME",
+			value: "malware",
+		},
+		commitShaName: "commit_sha",
 	},
 	configurations: {
 		serverSide: {
-			malwarePath: "configurations/server/malware.toml",
+			malware: "configurations/server/malware.toml",
 		},
 		clientSide: {
-			serverPath: "configurations/client/server.schema.json",
+			server: {
+				schema: "configurations/client/server.schema.json",
+				ui: "configurations/client/server-ui.schema.json",
+			},
 		},
 	},
 };
@@ -69,7 +128,7 @@ export const serverSideMalware = {
 		from: "port",
 	},
 	urlPrefix: {
-		function: "@randomPath()",
+		function: "@randomPathPrefix()",
 	},
 };
 export const invalidServerSideMalware = {

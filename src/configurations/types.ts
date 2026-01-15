@@ -70,7 +70,7 @@ export const RepositoryConfiguration = z.object({
 					.optional(),
 			})
 			.optional(),
-		outputs: z
+		states: z
 			.object({
 				instance: z
 					.object({

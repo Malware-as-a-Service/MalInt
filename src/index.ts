@@ -323,40 +323,40 @@ export class MalInt {
 	}
 
 	/**
-	 * Loads output configuration definitions from the repository.
+	 * Loads state configuration definitions from the repository.
 	 */
-	async getOutputsConfigurations(): Promise<
-		Result<Configurations["outputs"], GetConfigurationsError>
+	async getStatesConfigurations(): Promise<
+		Result<Configurations["states"], GetConfigurationsError>
 	> {
-		if (this.configurations.outputs) {
-			return ok(this.configurations.outputs);
+		if (this.configurations.states) {
+			return ok(this.configurations.states);
 		}
 
 		return safeTry(
 			async function* (this: MalInt) {
-				const { outputs } = this.repositoryConfiguration.configurations;
+				const { states } = this.repositoryConfiguration.configurations;
 
-				if (!outputs) {
+				if (!states) {
 					return ok(undefined);
 				}
 
-				const configurations: Configurations["outputs"] = {};
+				const configurations: Configurations["states"] = {};
 
-				if (outputs.instance) {
+				if (states.instance) {
 					const instanceConfigurations = yield* await this.getSchemaUiPair(
-						outputs.instance,
+						states.instance,
 					);
 					configurations.instance = instanceConfigurations;
 				}
 
-				if (outputs.victims) {
+				if (states.victims) {
 					const victimsConfigurations = yield* await this.getSchemaUiPair(
-						outputs.victims,
+						states.victims,
 					);
 					configurations.victims = victimsConfigurations;
 				}
 
-				this.configurations.outputs = configurations;
+				this.configurations.states = configurations;
 
 				return ok(configurations);
 			}.bind(this),

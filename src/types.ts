@@ -20,7 +20,7 @@ export interface Configurations {
 			ui: object;
 		};
 	};
-	outputs?: {
+	states?: {
 		instance?: {
 			schema: object;
 			ui: object;
